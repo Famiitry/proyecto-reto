@@ -11,58 +11,46 @@
 
 ### Persona 1: Datos y optimizacion
 
-Responsable principal de:
+Rol general: construir y demostrar la parte mas fuerte de base de datos del proyecto.
 
-- D3 Matriz de seleccion de base de datos
-- D4 Modelo logico/fisico, migraciones, scripts PL/SQL
-- D5 Catalogo de 10 a 15 consultas SQL avanzadas
-- D8 JSON Duality Views
-- Dataset pequeno del caso de salud
-- Evidencia de planes de ejecucion antes/despues
+Debe encargarse de:
 
-Entregables concretos:
-
-- scripts SQL limpios y ejecutables
-- triggers, funciones y procedimientos almacenados documentados
-- diccionario de datos
-- consultas con explicacion y evidencia
-- minimo 3 Duality Views con ejemplos `GET/POST/PATCH`
+- analizar por que Oracle relacional es adecuado para el caso de salud
+- mantener y corregir el esquema fisico en SQL
+- preparar scripts ejecutables de creacion, carga, consultas y pruebas
+- disenar el dataset clinico minimo que sostendra toda la demo
+- implementar triggers, funciones y procedimientos almacenados
+- construir las JSON Duality Views
+- crear el catalogo de consultas avanzadas y evidenciar su optimizacion
+- entregar capturas, scripts y resultados que Persona 3 usara en la documentacion final
 
 ### Persona 2: Servicios y experiencia funcional
 
-Responsable principal de:
+Rol general: convertir la base de datos en una solucion consumible y demostrable.
 
-- D1 ADR-000, ADR-001 y ADR-002
-- D2 Arquitectura y diagramas
-- D6 API REST + OpenAPI + coleccion Postman
-- D12 UI simple funcional
-- integracion de la demo tecnica
+Debe encargarse de:
 
-Entregables concretos:
-
-- endpoints CRUD, agregados y busquedas
-- documentacion Swagger/OpenAPI
-- coleccion Postman probada
-- interfaz minima para consultar datos y visualizar resultados
+- definir las decisiones tecnicas de arquitectura y documentarlas en ADRs
+- elaborar el diagrama de arquitectura y apoyar los diagramas de datos
+- publicar endpoints REST para las entidades principales del sistema
+- documentar la API con OpenAPI/Swagger y preparar la coleccion Postman
+- construir una UI minima que consuma los servicios y muestre resultados
+- integrar en una sola ruta de demo el flujo paciente -> cita -> consulta -> receta
+- entregar capturas, ejemplos de peticiones y respuestas para la documentacion final
 
 ### Persona 3: Direccion, validacion y entrega
 
-Responsable principal de:
+Rol general: convertir el trabajo tecnico en una entrega coherente, evaluable y presentable.
 
-- D0 Acta de proyecto + backlog
-- D13 Informe de resultados
-- D14 Estudio de caso por industria
-- D15 Documentacion tecnica
-- D16 Evidencias, slides y video demo
+Debe encargarse de:
 
-Entregables concretos:
-
-- README maestro
-- guia de despliegue
-- historia "de dato a decision" para salud
-- KPIs de negocio
-- slides ejecutivas
-- guion y grabacion de demo de 5 a 8 minutos
+- redactar el acta del proyecto, backlog, alcance, restricciones, riesgos y criterios de exito
+- construir la historia de negocio del caso de salud y definir KPIs claros
+- integrar resultados tecnicos en el informe final
+- mantener el README maestro y la guia de despliegue
+- verificar que cada entregable tenga evidencia, ubicacion y nombre claros
+- preparar slides, guion y video demo
+- revisar que la exclusion de IA/LN quede explicita y consistente en toda la entrega
 
 ### Trabajo compartido obligatorio
 
@@ -75,80 +63,257 @@ Entregables concretos:
   - un endpoint REST
   - el caso de estudio
 
-## Cronograma realista
+## Trabajo por entregables
 
-### Viernes 15 de mayo
+### D0. Acta de proyecto + backlog
 
-Objetivo: dejar la estructura del proyecto cerrada.
+Responsable: Persona 3
 
-- Persona 1:
-  - validar definitivamente `ddl.sql`
-  - crear dataset minimo de salud
-  - listar consultas candidatas
-- Persona 2:
-  - definir arquitectura minima basada en Oracle
-  - bosquejar endpoints REST
-  - decidir estructura de UI simple
-- Persona 3:
-  - redactar acta, alcance, riesgos y backlog
-  - preparar plantilla del README maestro
-  - definir historia del caso de salud y KPIs
-- Cierre del dia:
-  - reunion corta
-  - congelar alcance
-  - confirmar que se entregara y que queda excluido
+Debe producir:
 
-### Sabado 16 de mayo
+- objetivo del proyecto
+- alcance incluido y excluido
+- restricciones tecnicas y de tiempo
+- stakeholders
+- riesgos priorizados con respuesta
+- criterios de exito
+- backlog con epicas e historias
 
-Objetivo: producir la mayor parte tecnica.
+Apoyo requerido:
 
-- Persona 1:
-  - terminar modelo fisico, scripts, Duality Views y primeras consultas
-  - generar evidencias de optimizacion
-- Persona 2:
-  - implementar API REST
-  - documentar OpenAPI
-  - preparar Postman
-  - levantar UI basica
-- Persona 3:
-  - completar D0, D13 preliminar, D14 y estructura de D15
-  - comenzar slides y guion de demo
-- Cierre del dia:
-  - probar inserciones, consultas, REST y dataset completo
+- Persona 1 confirma alcance real de base de datos.
+- Persona 2 confirma alcance real de API y UI.
 
-### Domingo 17 de mayo
+### D1. ADRs
 
-Objetivo: integrar y convertir trabajo suelto en entrega.
+Responsable: Persona 2
 
-- Persona 1:
-  - cerrar catalogo SQL con 10 a 15 consultas
-  - completar evidencia antes/despues
-- Persona 2:
-  - cerrar endpoints faltantes
-  - conectar UI con API
-  - preparar capturas para documentacion
-- Persona 3:
-  - cerrar documentacion tecnica
-  - consolidar resultados
-  - montar slides
-- Trabajo conjunto:
-  - ensayo de demo
-  - revision cruzada de todos los entregables
-  - detectar huecos contra la rubrica
+Debe producir:
 
-### Lunes 18 de mayo
+- ADR-000 para la decision de frontend simple funcional
+- ADR-001 para la eleccion de Oracle relacional
+- ADR-002 para autenticacion y autorizacion propuestas
 
-Objetivo: estabilizar, no inventar.
+Cada ADR debe incluir:
 
-- Manana/tarde:
-  - correcciones finales
-  - revision de consistencia entre diagramas, SQL, API y demo
-  - empaquetar evidencias
-- Noche:
-  - grabar video final
-  - exportar documentos
-  - verificar nombres de archivos
-  - entregar con margen antes del cierre
+- contexto
+- decision
+- alternativas consideradas
+- consecuencias
+
+Apoyo requerido:
+
+- Persona 1 aporta argumentos tecnicos de Oracle.
+- Persona 3 revisa redaccion y consistencia con el informe.
+
+### D2. Arquitectura + diagramas de datos
+
+Responsable: Persona 2
+
+Debe producir:
+
+- diagrama general de arquitectura
+- diagrama logico de componentes
+- apoyo en diagrama entidad-relacion y modelo fisico
+- explicacion breve del flujo UI -> REST -> Oracle
+
+Apoyo requerido:
+
+- Persona 1 valida entidades, relaciones y decisiones del modelo.
+- Persona 3 incorpora los diagramas al documento final.
+
+### D3. Matriz de seleccion de base de datos
+
+Responsable: Persona 1
+
+Debe comparar Oracle relacional contra al menos dos alternativas usando:
+
+- consistencia
+- latencia
+- volumen
+- patron de acceso
+- costos
+- mantenimiento
+- transaccionalidad
+- soporte JSON
+- escalabilidad
+
+Resultado esperado:
+
+- matriz con ponderaciones
+- conclusion clara de por que Oracle es adecuado para salud
+
+### D4. Modelo logico/fisico + migraciones + PL/SQL
+
+Responsable: Persona 1
+
+Debe producir:
+
+- modelo logico y fisico alineado con `ddl.sql`
+- scripts de creacion y reinicio del esquema
+- diccionario de datos
+- dataset pequeno coherente para la demo
+- triggers, funciones y procedimientos almacenados
+
+Objetos PL/SQL minimos:
+
+- trigger de validacion de fecha de nacimiento futura
+- trigger de auditoria para tablas clave
+- funcion para calcular edad del paciente
+- funcion para obtener total de consultas por paciente
+- procedimiento para registrar una consulta medica completa
+- procedimiento para agendar una cita con validacion basica de disponibilidad
+
+### D5. Catalogo de consultas SQL avanzadas
+
+Responsable: Persona 1
+
+Debe producir:
+
+- entre 10 y 15 consultas utiles para el dominio de salud
+- explicacion de cada consulta
+- indice o tecnica usada para optimizarla cuando aplique
+- plan de ejecucion antes/despues
+- interpretacion breve del resultado
+
+Consultas recomendadas:
+
+- historia clinica de paciente
+- citas por medico y rango de fechas
+- pacientes con alergias severas
+- diagnosticos mas frecuentes
+- recetas por periodo
+- consultas mensuales
+- pacientes sin atencion reciente
+- ocupacion de consultorios
+- medicos por especialidad
+- indicadores de volumen por mes
+
+### D6. API REST + OpenAPI + Postman
+
+Responsable: Persona 2
+
+Debe producir:
+
+- endpoints CRUD para pacientes, medicos, citas y consultas
+- endpoints agregados para historia clinica, citas por medico y diagnosticos frecuentes
+- documentacion OpenAPI/Swagger completa
+- coleccion Postman con ejemplos correctos e incorrectos
+
+Debe verificar:
+
+- codigos HTTP coherentes
+- respuestas entendibles
+- manejo basico de errores
+- consistencia con el modelo de datos
+
+### D8. JSON Duality Views
+
+Responsable: Persona 1
+
+Debe producir:
+
+- minimo 3 Duality Views sobre entidades clave
+- ejemplos de lectura y modificacion
+- explicacion de cuando conviene usar vista dual frente a tablas relacionales directas
+
+Vistas recomendadas:
+
+- paciente
+- cita
+- consulta
+
+### D12. UI/UX flows + prototipo funcional
+
+Responsable: Persona 2
+
+Debe producir:
+
+- flujo de pacientes
+- flujo de citas
+- flujo de consulta/historia
+- flujo de consumo REST y visualizacion de resultados
+- estados de error y vacio
+- UI simple funcional para la demo
+
+Debe priorizar:
+
+- claridad
+- navegacion directa
+- pocos pasos para mostrar el caso completo
+
+### D13. Informe de resultados
+
+Responsable: Persona 3
+
+Debe producir:
+
+- resumen de resultados obtenidos
+- evidencia de rendimiento antes/despues
+- costos estimados
+- limites de escalado
+- lecciones aprendidas
+- respuesta explicita a las preguntas esenciales aplicables
+
+Debe integrar:
+
+- resultados SQL de Persona 1
+- evidencias REST/UI de Persona 2
+- exclusion formal de IA/LN
+
+### D14. Estudio de caso por industria
+
+Responsable: Persona 3
+
+Debe producir:
+
+- mini-dataset de salud descrito en lenguaje de negocio
+- historia "de dato a decision"
+- KPIs medibles
+- recorrido demostrable desde paciente hasta receta
+
+KPIs recomendados:
+
+- total de consultas por periodo
+- diagnosticos mas frecuentes
+- pacientes con alergias criticas
+- carga de citas por medico
+
+### D15. Documentacion tecnica
+
+Responsable: Persona 3
+
+Debe producir:
+
+- README maestro
+- guia de despliegue
+- instrucciones para crear esquema y cargar datos
+- diccionario de datos
+- catalogo de consultas
+- enlaces a ADRs, OpenAPI, Postman y evidencias
+
+### D16. Evidencias y demo final
+
+Responsable: Persona 3
+
+Debe producir:
+
+- slides ejecutivas
+- guion de demo
+- video de 5 a 8 minutos
+- capturas y reportes de pruebas
+- organizacion final de archivos para entrega
+
+Debe mostrar:
+
+- problema
+- solucion
+- modelo de datos
+- consulta optimizada
+- API REST
+- UI
+- caso de salud
+- resultados
 
 ## Cambios e interfaces a producir
 
@@ -241,9 +406,9 @@ Objetivo: estabilizar, no inventar.
 ## Riesgos y controles
 
 - Riesgo: intentar abarcar demasiado y terminar superficial.
-  - Control: usar el lunes solo para cierre y no para desarrollar modulos nuevos.
+  - Control: cerrar primero los entregables obligatorios y no abrir mejoras nuevas hasta tener evidencia completa.
 - Riesgo: documentacion desconectada de lo implementado.
-  - Control: una revision cruzada obligatoria el domingo.
+  - Control: Persona 3 solo documenta funciones verificadas por Persona 1 y Persona 2.
 - Riesgo: demo inestable.
   - Control: dataset pequeno, flujo corto y endpoints ya probados en Postman.
 - Riesgo: exclusion de IA afecte evaluacion.
