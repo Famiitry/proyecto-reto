@@ -66,9 +66,18 @@ CREATE TABLE persona (
     CONSTRAINT pk_persona          PRIMARY KEY (id_persona),
     CONSTRAINT uk_persona_cedula   UNIQUE (cedula),
     CONSTRAINT uk_persona_email    UNIQUE (email),
-    CONSTRAINT ck_persona_sexo     CHECK (sexo IN ('M','F','X')),
-    CONSTRAINT ck_persona_fnac     CHECK (fecha_nacimiento <= SYSDATE)
+    CONSTRAINT ck_persona_sexo     CHECK (sexo IN ('M','F','X'))
 );
+
+CREATE OR REPLACE TRIGGER trg_persona_fnac
+BEFORE INSERT OR UPDATE OF fecha_nacimiento ON persona
+FOR EACH ROW
+BEGIN
+    IF :NEW.fecha_nacimiento > TRUNC(SYSDATE) THEN
+        RAISE_APPLICATION_ERROR(-20001, 'La fecha de nacimiento no puede ser futura');
+    END IF;
+END;
+/
 
 -- Teléfonos: 4FN -- atributo multi-valuado separado
 CREATE TABLE persona_telefono (
