@@ -14,6 +14,7 @@ const medicosRouter = require('./routes/medicos');
 const citasRouter = require('./routes/citas');
 const consultasRouter = require('./routes/consultas');
 const agregadosRouter = require('./routes/agregados');
+const analiticasRouter = require('./routes/analiticas');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -28,6 +29,7 @@ app.use('/api/medicos', medicosRouter);
 app.use('/api/citas', citasRouter);
 app.use('/api/consultas', consultasRouter);
 app.use('/api/agregados', agregadosRouter);
+app.use('/api/analiticas', analiticasRouter);
 
 const swaggerDocument = YAML.load(path.join(__dirname, 'openapi.yaml'));
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
