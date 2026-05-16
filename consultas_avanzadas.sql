@@ -7,7 +7,11 @@ SET TAB OFF
 ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD';
 ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SS';
 
-PROMPT 1) Medicos con mas citas (ranking)
+PROMPT ============================================================
+PROMPT GRUPO 1: MEDICOS Y ESPECIALIDADES
+PROMPT ============================================================
+
+PROMPT 1.1) Medicos con mas citas (ranking)
 SELECT *
 FROM (
   SELECT m.id_medico,
@@ -22,7 +26,51 @@ FROM (
 WHERE rnk <= 10
 ORDER BY total_citas DESC;
 
-PROMPT 2) Citas por estado y mes con rollup
+PROMPT 1.2) Distribucion de citas por especialidad (GROUPING SETS)
+SELECT e.nombre AS especialidad,
+       TO_CHAR(TRUNC(CAST(c.fecha_hora AS DATE), 'MM'), 'YYYY-MM') AS mes,
+       COUNT(*) AS total
+FROM cita c
+JOIN medico_especialidad me ON me.id_medico = c.id_medico
+JOIN especialidad e ON e.id_especialidad = me.id_especialidad
+GROUP BY GROUPING SETS (
+  (e.nombre, TRUNC(CAST(c.fecha_hora AS DATE), 'MM')),
+  (e.nombre),
+  (TRUNC(CAST(c.fecha_hora AS DATE), 'MM'))
+)
+ORDER BY especialidad, mes;
+
+PROMPT 1.3) Diagnosticos mas frecuentes por medico (DENSE_RANK) //No devuelve resultados por falta de datos en consulta_diagnostico, pero la consulta es correcta para el objetivo planteado
+SELECT *
+FROM (
+  SELECT c.id_medico,
+         cd.codigo_cie,
+         COUNT(*) AS total,
+         DENSE_RANK() OVER (PARTITION BY c.id_medico ORDER BY COUNT(*) DESC) AS rnk
+  FROM consulta con
+  JOIN cita c ON c.id_cita = con.id_cita AND c.fecha_hora = con.fecha_cita
+  JOIN consulta_diagnostico cd ON cd.id_consulta = con.id_consulta
+  GROUP BY c.id_medico, cd.codigo_cie
+)
+WHERE rnk <= 3
+ORDER BY id_medico, total DESC;
+
+PROMPT 1.4) Resumen por especialidad y estado (CUBE)
+SELECT e.nombre AS especialidad,
+       ec.codigo AS estado,
+       COUNT(*) AS total
+FROM cita c
+JOIN medico_especialidad me ON me.id_medico = c.id_medico
+JOIN especialidad e ON e.id_especialidad = me.id_especialidad
+JOIN estado_cita ec ON ec.id_estado = c.id_estado
+GROUP BY CUBE (e.nombre, ec.codigo)
+ORDER BY especialidad, estado;
+
+PROMPT ============================================================
+PROMPT GRUPO 2: CITAS
+PROMPT ============================================================
+
+PROMPT 2.1) Citas por estado y mes con ROLLUP
 SELECT TO_CHAR(TRUNC(CAST(c.fecha_hora AS DATE), 'MM'), 'YYYY-MM') AS mes,
        e.codigo AS estado,
        COUNT(*) AS total_citas
@@ -31,7 +79,7 @@ JOIN estado_cita e ON e.id_estado = c.id_estado
 GROUP BY ROLLUP (TRUNC(CAST(c.fecha_hora AS DATE), 'MM'), e.codigo)
 ORDER BY mes, estado;
 
-PROMPT 3) Promedio movil de 7 dias de citas diarias
+PROMPT 2.2) Promedio movil de 7 dias de citas diarias
 WITH citas_diarias AS (
   SELECT TRUNC(CAST(c.fecha_hora AS DATE)) AS fecha,
          COUNT(*) AS total
@@ -44,7 +92,29 @@ SELECT fecha,
 FROM citas_diarias
 ORDER BY fecha;
 
-PROMPT 4) Pacientes con mayor tiempo de espera entre cita y atencion
+PROMPT 2.3) Citas por estado (PIVOT)
+WITH base AS (
+  SELECT TO_CHAR(TRUNC(CAST(c.fecha_hora AS DATE), 'MM'), 'YYYY-MM') AS mes,
+         e.codigo AS estado
+  FROM cita c
+  JOIN estado_cita e ON e.id_estado = c.id_estado
+)
+SELECT *
+FROM base
+PIVOT (
+  COUNT(*) FOR estado IN (
+    'PROGRAMADA' AS programada,
+    'ATENDIDA' AS atendida,
+    'CANCELADA' AS cancelada
+  )
+)
+ORDER BY mes;
+
+PROMPT ============================================================
+PROMPT GRUPO 3: PACIENTES
+PROMPT ============================================================
+
+PROMPT 3.1) Pacientes con mayor tiempo de espera entre cita y atencion
 WITH espera AS (
   SELECT c.id_cita,
          c.id_paciente,
@@ -66,7 +136,7 @@ FROM (
 )
 FETCH FIRST 20 ROWS ONLY;
 
-PROMPT 5) Brechas maximas entre citas por paciente (LAG)
+PROMPT 3.2) Brechas maximas entre citas por paciente (LAG)
 WITH citas_paciente AS (
   SELECT id_paciente,
          fecha_hora,
@@ -81,69 +151,7 @@ GROUP BY id_paciente
 ORDER BY max_gap_dias DESC
 FETCH FIRST 20 ROWS ONLY;
 
-PROMPT 6) Distribucion de citas por especialidad (GROUPING SETS)
-SELECT e.nombre AS especialidad,
-       TO_CHAR(TRUNC(CAST(c.fecha_hora AS DATE), 'MM'), 'YYYY-MM') AS mes,
-       COUNT(*) AS total
-FROM cita c
-JOIN medico_especialidad me ON me.id_medico = c.id_medico
-JOIN especialidad e ON e.id_especialidad = me.id_especialidad
-GROUP BY GROUPING SETS (
-  (e.nombre, TRUNC(CAST(c.fecha_hora AS DATE), 'MM')),
-  (e.nombre),
-  (TRUNC(CAST(c.fecha_hora AS DATE), 'MM'))
-)
-ORDER BY especialidad, mes;
-
-PROMPT 7) Top alergias por categoria y severidad (window + partition)
-SELECT *
-FROM (
-  SELECT a.categoria,
-         a.nombre,
-         pa.severidad,
-         COUNT(*) AS total,
-         ROW_NUMBER() OVER (PARTITION BY a.categoria, pa.severidad ORDER BY COUNT(*) DESC) AS rn
-  FROM paciente_alergia pa
-  JOIN alergeno a ON a.id_alergeno = pa.id_alergeno
-  GROUP BY a.categoria, a.nombre, pa.severidad
-)
-WHERE rn <= 5
-ORDER BY categoria, severidad, total DESC;
-
-PROMPT 8) Citas por estado (PIVOT)
-WITH base AS (
-  SELECT TO_CHAR(TRUNC(CAST(c.fecha_hora AS DATE), 'MM'), 'YYYY-MM') AS mes,
-         e.codigo AS estado
-  FROM cita c
-  JOIN estado_cita e ON e.id_estado = c.id_estado
-)
-SELECT *
-FROM base
-PIVOT (
-  COUNT(*) FOR estado IN (
-    'PROGRAMADA' AS programada,
-    'ATENDIDA' AS atendida,
-    'CANCELADA' AS cancelada
-  )
-)
-ORDER BY mes;
-
-PROMPT 9) Diagnosticos mas frecuentes por medico (dense rank)
-SELECT *
-FROM (
-  SELECT c.id_medico,
-         cd.codigo_cie,
-         COUNT(*) AS total,
-         DENSE_RANK() OVER (PARTITION BY c.id_medico ORDER BY COUNT(*) DESC) AS rnk
-  FROM consulta con
-  JOIN cita c ON c.id_cita = con.id_cita AND c.fecha_hora = con.fecha_cita
-  JOIN consulta_diagnostico cd ON cd.id_consulta = con.id_consulta
-  GROUP BY c.id_medico, cd.codigo_cie
-)
-WHERE rnk <= 3
-ORDER BY id_medico, total DESC;
-
-PROMPT 10) Ultima consulta por paciente (OUTER APPLY)
+PROMPT 3.3) Ultima consulta por paciente (OUTER APPLY)
 SELECT p.id_persona AS id_paciente,
        p.apellidos || ', ' || p.nombres AS paciente,
        lc.id_consulta,
@@ -163,55 +171,7 @@ OUTER APPLY (
 ) lc
 ORDER BY p.id_persona;
 
-PROMPT 11) Jerarquia geografica completa (CTE recursivo)
-WITH geo (nivel, id_pais, id_provincia, id_canton, id_parroquia, nombre, path) AS (
-  SELECT 1,
-         pa.id_pais,
-         NULL,
-         NULL,
-         NULL,
-         pa.nombre,
-         pa.nombre
-  FROM pais pa
-  UNION ALL
-  SELECT 2,
-         pr.id_pais,
-         pr.id_provincia,
-         NULL,
-         NULL,
-         pr.nombre,
-         g.path || ' > ' || pr.nombre
-  FROM provincia pr
-  JOIN geo g ON g.nivel = 1 AND g.id_pais = pr.id_pais
-  UNION ALL
-  SELECT 3,
-         pr.id_pais,
-         ca.id_provincia,
-         ca.id_canton,
-         NULL,
-         ca.nombre,
-         g.path || ' > ' || ca.nombre
-  FROM canton ca
-  JOIN provincia pr ON pr.id_provincia = ca.id_provincia
-  JOIN geo g ON g.nivel = 2 AND g.id_provincia = pr.id_provincia
-  UNION ALL
-  SELECT 4,
-         pr.id_pais,
-         ca.id_provincia,
-         pa.id_canton,
-         pa.id_parroquia,
-         pa.nombre,
-         g.path || ' > ' || pa.nombre
-  FROM parroquia pa
-  JOIN canton ca ON ca.id_canton = pa.id_canton
-  JOIN provincia pr ON pr.id_provincia = ca.id_provincia
-  JOIN geo g ON g.nivel = 3 AND g.id_canton = ca.id_canton
-)
-SELECT nivel, path
-FROM geo
-ORDER BY path;
-
-PROMPT 12) Pacientes con uso alto vs promedio (ratio z-score)
+PROMPT 3.4) Pacientes con uso alto vs promedio (z-score)
 WITH uso AS (
   SELECT c.id_paciente,
          COUNT(*) AS total_citas
@@ -230,18 +190,26 @@ CROSS JOIN stats s
 ORDER BY z_score DESC NULLS LAST
 FETCH FIRST 20 ROWS ONLY;
 
-PROMPT 13) Sumarizacion por cubo de especialidad y estado
-SELECT e.nombre AS especialidad,
-       ec.codigo AS estado,
-       COUNT(*) AS total
-FROM cita c
-JOIN medico_especialidad me ON me.id_medico = c.id_medico
-JOIN especialidad e ON e.id_especialidad = me.id_especialidad
-JOIN estado_cita ec ON ec.id_estado = c.id_estado
-GROUP BY CUBE (e.nombre, ec.codigo)
-ORDER BY especialidad, estado;
+PROMPT 3.5) Top alergias por categoria y severidad (window + partition)
+SELECT *
+FROM (
+  SELECT a.categoria,
+         a.nombre,
+         pa.severidad,
+         COUNT(*) AS total,
+         ROW_NUMBER() OVER (PARTITION BY a.categoria, pa.severidad ORDER BY COUNT(*) DESC) AS rn
+  FROM paciente_alergia pa
+  JOIN alergeno a ON a.id_alergeno = pa.id_alergeno
+  GROUP BY a.categoria, a.nombre, pa.severidad
+)
+WHERE rn <= 5
+ORDER BY categoria, severidad, total DESC;
 
-PROMPT 14) Consultas con resumen JSON de anamnesis
+PROMPT ============================================================
+PROMPT GRUPO 4: CONSULTAS CLINICAS
+PROMPT ============================================================
+
+PROMPT 4.1) Consultas con resumen JSON de anamnesis
 SELECT con.id_consulta,
        con.fecha_atencion,
        JSON_VALUE(con.anamnesis, '$.motivoPrincipal') AS motivo_principal
@@ -249,7 +217,11 @@ FROM consulta con
 WHERE con.anamnesis IS NOT NULL
 ORDER BY con.id_consulta;
 
-PROMPT 15) Medicamentos mas recetados por mes (window + partition)
+PROMPT ============================================================
+PROMPT GRUPO 5: RECETAS Y MEDICAMENTOS
+PROMPT ============================================================
+
+PROMPT 5.1) Medicamentos mas recetados por mes (window + partition)
 WITH det AS (
   SELECT TO_CHAR(TRUNC(CAST(r.fecha_emision AS DATE), 'MM'), 'YYYY-MM') AS mes,
          m.nombre_generico AS medicamento,

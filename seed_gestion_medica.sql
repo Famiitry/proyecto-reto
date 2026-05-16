@@ -246,25 +246,58 @@ SELECT id_persona, 'MSP-00014', DATE '2015-07-07', 'Dra. Ginecóloga' FROM perso
 INSERT INTO medico (id_medico, num_registro, fecha_ingreso, titulo_principal)
 SELECT id_persona, 'MSP-00015', DATE '2001-11-30', 'Dr. Traumatólogo' FROM persona WHERE cedula = '0101000015';
 
--- Especialidades por médico (algunos con 2)
-INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion) VALUES ( 1, 1, DATE '2006-06-01', 'Universidad de Cuenca');
-INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion) VALUES ( 2, 1, DATE '2009-06-01', 'UCACUE');
-INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion) VALUES ( 3, 3, DATE '2005-12-15', 'Universidad Central');
-INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion) VALUES ( 4, 2, DATE '2011-03-20', 'PUCE');
-INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion) VALUES ( 5, 4, DATE '2008-09-10', 'Universidad de Cuenca');
-INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion) VALUES ( 6, 5, DATE '2013-05-22', 'UCACUE');
-INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion) VALUES ( 7, 6, DATE '2003-07-30', 'Universidad Central');
-INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion) VALUES ( 8, 7, DATE '2014-11-11', 'PUCE');
-INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion) VALUES ( 9, 8, DATE '2008-02-14', 'Universidad de Cuenca');
-INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion) VALUES (10, 1, DATE '2014-08-05', 'UCACUE');
-INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion) VALUES (11, 3, DATE '2006-04-18', 'Universidad Central');
-INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion) VALUES (12, 2, DATE '2016-10-23', 'PUCE');
-INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion) VALUES (13, 5, DATE '2011-01-30', 'Universidad de Cuenca');
-INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion) VALUES (14, 4, DATE '2017-05-12', 'UCACUE');
-INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion) VALUES (15, 6, DATE '2003-12-08', 'Universidad Central');
--- 2da especialidad para algunos
-INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion) VALUES ( 1, 7, DATE '2010-06-01', 'Universidad de Cuenca');
-INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion) VALUES ( 3, 8, DATE '2012-12-15', 'Universidad Central');
+-- Especialidades por medico (algunos con 2), usando claves naturales.
+INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion)
+SELECT m.id_medico, e.id_especialidad, DATE '2006-06-01', 'Universidad de Cuenca'
+FROM medico m JOIN especialidad e ON e.nombre = 'Medicina General' WHERE m.num_registro = 'MSP-00001';
+INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion)
+SELECT m.id_medico, e.id_especialidad, DATE '2009-06-01', 'UCACUE'
+FROM medico m JOIN especialidad e ON e.nombre = 'Medicina General' WHERE m.num_registro = 'MSP-00002';
+INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion)
+SELECT m.id_medico, e.id_especialidad, DATE '2005-12-15', 'Universidad Central'
+FROM medico m JOIN especialidad e ON e.nombre = 'Cardiología' WHERE m.num_registro = 'MSP-00003';
+INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion)
+SELECT m.id_medico, e.id_especialidad, DATE '2011-03-20', 'PUCE'
+FROM medico m JOIN especialidad e ON e.nombre = 'Pediatría' WHERE m.num_registro = 'MSP-00004';
+INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion)
+SELECT m.id_medico, e.id_especialidad, DATE '2008-09-10', 'Universidad de Cuenca'
+FROM medico m JOIN especialidad e ON e.nombre = 'Ginecología' WHERE m.num_registro = 'MSP-00005';
+INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion)
+SELECT m.id_medico, e.id_especialidad, DATE '2013-05-22', 'UCACUE'
+FROM medico m JOIN especialidad e ON e.nombre = 'Dermatología' WHERE m.num_registro = 'MSP-00006';
+INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion)
+SELECT m.id_medico, e.id_especialidad, DATE '2003-07-30', 'Universidad Central'
+FROM medico m JOIN especialidad e ON e.nombre = 'Traumatología' WHERE m.num_registro = 'MSP-00007';
+INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion)
+SELECT m.id_medico, e.id_especialidad, DATE '2014-11-11', 'PUCE'
+FROM medico m JOIN especialidad e ON e.nombre = 'Endocrinología' WHERE m.num_registro = 'MSP-00008';
+INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion)
+SELECT m.id_medico, e.id_especialidad, DATE '2008-02-14', 'Universidad de Cuenca'
+FROM medico m JOIN especialidad e ON e.nombre = 'Neurología' WHERE m.num_registro = 'MSP-00009';
+INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion)
+SELECT m.id_medico, e.id_especialidad, DATE '2014-08-05', 'UCACUE'
+FROM medico m JOIN especialidad e ON e.nombre = 'Medicina General' WHERE m.num_registro = 'MSP-00010';
+INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion)
+SELECT m.id_medico, e.id_especialidad, DATE '2006-04-18', 'Universidad Central'
+FROM medico m JOIN especialidad e ON e.nombre = 'Cardiología' WHERE m.num_registro = 'MSP-00011';
+INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion)
+SELECT m.id_medico, e.id_especialidad, DATE '2016-10-23', 'PUCE'
+FROM medico m JOIN especialidad e ON e.nombre = 'Pediatría' WHERE m.num_registro = 'MSP-00012';
+INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion)
+SELECT m.id_medico, e.id_especialidad, DATE '2011-01-30', 'Universidad de Cuenca'
+FROM medico m JOIN especialidad e ON e.nombre = 'Dermatología' WHERE m.num_registro = 'MSP-00013';
+INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion)
+SELECT m.id_medico, e.id_especialidad, DATE '2017-05-12', 'UCACUE'
+FROM medico m JOIN especialidad e ON e.nombre = 'Ginecología' WHERE m.num_registro = 'MSP-00014';
+INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion)
+SELECT m.id_medico, e.id_especialidad, DATE '2003-12-08', 'Universidad Central'
+FROM medico m JOIN especialidad e ON e.nombre = 'Traumatología' WHERE m.num_registro = 'MSP-00015';
+INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion)
+SELECT m.id_medico, e.id_especialidad, DATE '2010-06-01', 'Universidad de Cuenca'
+FROM medico m JOIN especialidad e ON e.nombre = 'Endocrinología' WHERE m.num_registro = 'MSP-00001';
+INSERT INTO medico_especialidad (id_medico, id_especialidad, fecha_certif, institucion)
+SELECT m.id_medico, e.id_especialidad, DATE '2012-12-15', 'Universidad Central'
+FROM medico m JOIN especialidad e ON e.nombre = 'Neurología' WHERE m.num_registro = 'MSP-00003';
 
 -- Pacientes (id_persona 16..50)
 INSERT INTO paciente (id_paciente, historia_clinica, tipo_sangre, factor_rh, ocupacion, estado_civil, contacto_emergencia_nombre, contacto_emergencia_telefono)
@@ -285,16 +318,46 @@ COMMIT;
 -- ---------------------------------------------------------------------
 -- 6. ALERGIAS DE PACIENTES (selectivo)
 -- ---------------------------------------------------------------------
-INSERT INTO paciente_alergia (id_paciente, id_alergeno, severidad, fecha_deteccion, observaciones) VALUES (16, 1, 'SEVERA',       DATE '2018-04-10', 'Reacción cutánea generalizada');
-INSERT INTO paciente_alergia (id_paciente, id_alergeno, severidad, fecha_deteccion, observaciones) VALUES (17, 3, 'ANAFILACTICA', DATE '2015-08-22', 'Requirió epinefrina');
-INSERT INTO paciente_alergia (id_paciente, id_alergeno, severidad, fecha_deteccion, observaciones) VALUES (18, 5, 'LEVE',         DATE '2020-03-15', 'Rinitis estacional');
-INSERT INTO paciente_alergia (id_paciente, id_alergeno, severidad, fecha_deteccion, observaciones) VALUES (19, 2, 'MODERADA',     DATE '2019-11-02', NULL);
-INSERT INTO paciente_alergia (id_paciente, id_alergeno, severidad, fecha_deteccion, observaciones) VALUES (20, 4, 'SEVERA',       DATE '2017-06-30', 'Edema facial');
-INSERT INTO paciente_alergia (id_paciente, id_alergeno, severidad, fecha_deteccion, observaciones) VALUES (22, 6, 'MODERADA',     DATE '2021-01-12', 'Asma alérgica');
-INSERT INTO paciente_alergia (id_paciente, id_alergeno, severidad, fecha_deteccion, observaciones) VALUES (25, 8, 'LEVE',         DATE '2022-05-18', NULL);
-INSERT INTO paciente_alergia (id_paciente, id_alergeno, severidad, fecha_deteccion, observaciones) VALUES (28, 7, 'MODERADA',     DATE '2020-09-09', 'Contacto con felinos');
-INSERT INTO paciente_alergia (id_paciente, id_alergeno, severidad, fecha_deteccion, observaciones) VALUES (33, 1, 'LEVE',         DATE '2019-02-20', NULL);
-INSERT INTO paciente_alergia (id_paciente, id_alergeno, severidad, fecha_deteccion, observaciones) VALUES (40, 3, 'SEVERA',       DATE '2016-07-04', 'Urticaria generalizada');
+INSERT INTO paciente_alergia (id_paciente, id_alergeno, severidad, fecha_deteccion, observaciones)
+SELECT pa.id_paciente, a.id_alergeno, 'SEVERA', DATE '2018-04-10', 'Reacción cutánea generalizada'
+FROM paciente pa JOIN persona p ON p.id_persona = pa.id_paciente JOIN alergeno a ON a.nombre = 'Penicilina'
+WHERE p.cedula = '0102000016';
+INSERT INTO paciente_alergia (id_paciente, id_alergeno, severidad, fecha_deteccion, observaciones)
+SELECT pa.id_paciente, a.id_alergeno, 'ANAFILACTICA', DATE '2015-08-22', 'Requirió epinefrina'
+FROM paciente pa JOIN persona p ON p.id_persona = pa.id_paciente JOIN alergeno a ON a.nombre = 'Maní'
+WHERE p.cedula = '0102000017';
+INSERT INTO paciente_alergia (id_paciente, id_alergeno, severidad, fecha_deteccion, observaciones)
+SELECT pa.id_paciente, a.id_alergeno, 'LEVE', DATE '2020-03-15', 'Rinitis estacional'
+FROM paciente pa JOIN persona p ON p.id_persona = pa.id_paciente JOIN alergeno a ON a.nombre = 'Polen'
+WHERE p.cedula = '0102000018';
+INSERT INTO paciente_alergia (id_paciente, id_alergeno, severidad, fecha_deteccion, observaciones)
+SELECT pa.id_paciente, a.id_alergeno, 'MODERADA', DATE '2019-11-02', NULL
+FROM paciente pa JOIN persona p ON p.id_persona = pa.id_paciente JOIN alergeno a ON a.nombre = 'Ibuprofeno'
+WHERE p.cedula = '0102000019';
+INSERT INTO paciente_alergia (id_paciente, id_alergeno, severidad, fecha_deteccion, observaciones)
+SELECT pa.id_paciente, a.id_alergeno, 'SEVERA', DATE '2017-06-30', 'Edema facial'
+FROM paciente pa JOIN persona p ON p.id_persona = pa.id_paciente JOIN alergeno a ON a.nombre = 'Mariscos'
+WHERE p.cedula = '0102000020';
+INSERT INTO paciente_alergia (id_paciente, id_alergeno, severidad, fecha_deteccion, observaciones)
+SELECT pa.id_paciente, a.id_alergeno, 'MODERADA', DATE '2021-01-12', 'Asma alérgica'
+FROM paciente pa JOIN persona p ON p.id_persona = pa.id_paciente JOIN alergeno a ON a.nombre = 'Ácaros'
+WHERE p.cedula = '0102000022';
+INSERT INTO paciente_alergia (id_paciente, id_alergeno, severidad, fecha_deteccion, observaciones)
+SELECT pa.id_paciente, a.id_alergeno, 'LEVE', DATE '2022-05-18', NULL
+FROM paciente pa JOIN persona p ON p.id_persona = pa.id_paciente JOIN alergeno a ON a.nombre = 'Látex'
+WHERE p.cedula = '0102000025';
+INSERT INTO paciente_alergia (id_paciente, id_alergeno, severidad, fecha_deteccion, observaciones)
+SELECT pa.id_paciente, a.id_alergeno, 'MODERADA', DATE '2020-09-09', 'Contacto con felinos'
+FROM paciente pa JOIN persona p ON p.id_persona = pa.id_paciente JOIN alergeno a ON a.nombre = 'Pelo de gato'
+WHERE p.cedula = '0102000028';
+INSERT INTO paciente_alergia (id_paciente, id_alergeno, severidad, fecha_deteccion, observaciones)
+SELECT pa.id_paciente, a.id_alergeno, 'LEVE', DATE '2019-02-20', NULL
+FROM paciente pa JOIN persona p ON p.id_persona = pa.id_paciente JOIN alergeno a ON a.nombre = 'Penicilina'
+WHERE p.cedula = '0102000033';
+INSERT INTO paciente_alergia (id_paciente, id_alergeno, severidad, fecha_deteccion, observaciones)
+SELECT pa.id_paciente, a.id_alergeno, 'SEVERA', DATE '2016-07-04', 'Urticaria generalizada'
+FROM paciente pa JOIN persona p ON p.id_persona = pa.id_paciente JOIN alergeno a ON a.nombre = 'Maní'
+WHERE p.cedula = '0102000040';
 
 COMMIT;
 
@@ -457,9 +520,15 @@ COMMIT;
 -- ---------------------------------------------------------------------
 DECLARE
     CURSOR c_con IS SELECT id_consulta FROM consulta ORDER BY id_consulta;
+    TYPE t_ids IS TABLE OF NUMBER INDEX BY PLS_INTEGER;
+    v_medicamentos t_ids;
     v_rec NUMBER;
     v_idx NUMBER := 0;
 BEGIN
+    SELECT id_medicamento BULK COLLECT INTO v_medicamentos
+    FROM medicamento
+    ORDER BY id_medicamento;
+
     FOR r IN c_con LOOP
         v_idx := v_idx + 1;
         INSERT INTO receta (id_consulta, validez_dias, observaciones)
@@ -467,11 +536,11 @@ BEGIN
         RETURNING id_receta INTO v_rec;
 
         INSERT INTO receta_detalle (id_receta, id_medicamento, dosis, frecuencia, duracion_dias, indicaciones)
-        VALUES (v_rec, MOD(v_idx-1,8)+1, '1 unidad', 'Cada 8 horas', 5, 'Tomar con alimentos');
+        VALUES (v_rec, v_medicamentos(MOD(v_idx-1, v_medicamentos.COUNT)+1), '1 unidad', 'Cada 8 horas', 5, 'Tomar con alimentos');
 
         IF MOD(v_idx,2) = 0 THEN
             INSERT INTO receta_detalle (id_receta, id_medicamento, dosis, frecuencia, duracion_dias, indicaciones)
-            VALUES (v_rec, MOD(v_idx,8)+1, '1 unidad', 'Cada 12 horas', 7, 'Tomar después de comer');
+            VALUES (v_rec, v_medicamentos(MOD(v_idx, v_medicamentos.COUNT)+1), '1 unidad', 'Cada 12 horas', 7, 'Tomar después de comer');
         END IF;
     END LOOP;
 END;
