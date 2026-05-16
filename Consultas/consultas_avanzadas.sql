@@ -79,20 +79,8 @@ JOIN estado_cita e ON e.id_estado = c.id_estado
 GROUP BY ROLLUP (TRUNC(CAST(c.fecha_hora AS DATE), 'MM'), e.codigo)
 ORDER BY mes, estado;
 
-PROMPT 2.2) Promedio movil de 7 dias de citas diarias
-WITH citas_diarias AS (
-  SELECT TRUNC(CAST(c.fecha_hora AS DATE)) AS fecha,
-         COUNT(*) AS total
-  FROM cita c
-  GROUP BY TRUNC(CAST(c.fecha_hora AS DATE))
-)
-SELECT fecha,
-       total,
-       ROUND(AVG(total) OVER (ORDER BY fecha ROWS BETWEEN 6 PRECEDING AND CURRENT ROW), 2) AS avg_7d
-FROM citas_diarias
-ORDER BY fecha;
 
-PROMPT 2.3) Citas por estado (PIVOT)
+PROMPT 2.2) Citas por estado (PIVOT)
 WITH base AS (
   SELECT TO_CHAR(TRUNC(CAST(c.fecha_hora AS DATE), 'MM'), 'YYYY-MM') AS mes,
          e.codigo AS estado
@@ -109,6 +97,23 @@ PIVOT (
   )
 )
 ORDER BY mes;
+
+PROMPT 2.3) Listado detallado de citas
+SELECT c.id_cita,
+       TO_CHAR(c.fecha_hora, 'DD Mon, HH24:MI', 'NLS_DATE_LANGUAGE=SPANISH') AS fecha_hora,
+       pp.nombres || ' ' || pp.apellidos AS paciente,
+       pm.nombres || ' ' || pm.apellidos AS medico,
+       co.codigo AS consultorio,
+       e.nombre AS especialidad,
+       ec.codigo AS estado
+FROM cita c
+JOIN persona pp ON pp.id_persona = c.id_paciente
+JOIN persona pm ON pm.id_persona = c.id_medico
+JOIN consultorio co ON co.id_consultorio = c.id_consultorio
+JOIN medico_especialidad me ON me.id_medico = c.id_medico
+JOIN especialidad e ON e.id_especialidad = me.id_especialidad
+JOIN estado_cita ec ON ec.id_estado = c.id_estado
+ORDER BY c.fecha_hora DESC;
 
 PROMPT ============================================================
 PROMPT GRUPO 3: PACIENTES
@@ -127,11 +132,13 @@ WITH espera AS (
 )
 SELECT *
 FROM (
-  SELECT id_paciente,
-         ROUND(AVG(espera_min), 2) AS espera_prom_min,
-         PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY espera_min) AS p95_espera_min
-  FROM espera
-  GROUP BY id_paciente
+  SELECT e.id_paciente,
+         p.apellidos || ', ' || p.nombres AS paciente,
+         ROUND(AVG(e.espera_min), 2) AS espera_prom_min,
+         PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY e.espera_min) AS p95_espera_min
+  FROM espera e
+  JOIN persona p ON p.id_persona = e.id_paciente
+  GROUP BY e.id_paciente, p.apellidos, p.nombres
   ORDER BY espera_prom_min DESC
 )
 FETCH FIRST 20 ROWS ONLY;
@@ -143,11 +150,13 @@ WITH citas_paciente AS (
          LAG(fecha_hora) OVER (PARTITION BY id_paciente ORDER BY fecha_hora) AS fecha_prev
   FROM cita
 )
-SELECT id_paciente,
-       MAX(CAST(fecha_hora AS DATE) - CAST(fecha_prev AS DATE)) AS max_gap_dias
-FROM citas_paciente
-WHERE fecha_prev IS NOT NULL
-GROUP BY id_paciente
+SELECT cp.id_paciente,
+       p.apellidos || ', ' || p.nombres AS paciente,
+       MAX(CAST(cp.fecha_hora AS DATE) - CAST(cp.fecha_prev AS DATE)) AS max_gap_dias
+FROM citas_paciente cp
+JOIN persona p ON p.id_persona = cp.id_paciente
+WHERE cp.fecha_prev IS NOT NULL
+GROUP BY cp.id_paciente, p.apellidos, p.nombres
 ORDER BY max_gap_dias DESC
 FETCH FIRST 20 ROWS ONLY;
 
@@ -208,6 +217,31 @@ FROM (
 WHERE rn <= 5
 ORDER BY categoria, severidad, total DESC;
 
+PROMPT 3.6) Listado de pacientes
+SELECT pa.historia_clinica AS expediente,
+       p.nombres || ' ' || p.apellidos AS paciente,
+       p.cedula,
+       TO_CHAR(MAX(c.fecha_hora), 'DD Mon, YYYY', 'NLS_DATE_LANGUAGE=SPANISH') AS ultima_cita,
+       CASE
+         WHEN SUM(CASE
+                    WHEN ec.codigo = 'PROGRAMADA'
+                     AND c.fecha_hora > SYSDATE THEN 1
+                    ELSE 0
+                  END) > 0 THEN 'Pendiente'
+         WHEN MAX(c.fecha_hora) >= ADD_MONTHS(TRUNC(SYSDATE), -12) THEN 'Al dia'
+         WHEN MAX(c.fecha_hora) IS NULL THEN 'Sin citas'
+         ELSE 'Inactivo'
+       END AS estado
+FROM paciente pa
+JOIN persona p ON p.id_persona = pa.id_paciente
+LEFT JOIN cita c ON c.id_paciente = pa.id_paciente
+LEFT JOIN estado_cita ec ON ec.id_estado = c.id_estado
+GROUP BY pa.historia_clinica,
+         p.nombres,
+         p.apellidos,
+         p.cedula
+ORDER BY paciente;
+
 PROMPT ============================================================
 PROMPT GRUPO 4: CONSULTAS CLINICAS
 PROMPT ============================================================
@@ -220,11 +254,7 @@ FROM consulta con
 WHERE con.anamnesis IS NOT NULL
 ORDER BY con.id_consulta;
 
-PROMPT ============================================================
-PROMPT GRUPO 5: RECETAS Y MEDICAMENTOS
-PROMPT ============================================================
-
-PROMPT 5.1) Medicamentos mas recetados por mes (window + partition)
+PROMPT 4.2) Medicamentos mas recetados por mes (window + partition)
 WITH det AS (
   SELECT TO_CHAR(TRUNC(CAST(r.fecha_emision AS DATE), 'MM'), 'YYYY-MM') AS mes,
          m.nombre_generico AS medicamento,
@@ -244,3 +274,38 @@ FROM (
 )
 WHERE rn <= 5
 ORDER BY mes, total DESC;
+
+PROMPT 4.3) Ultima consulta (Uso de vistas)
+SELECT id_consulta,
+       TO_CHAR(fecha_atencion, 'DD Mon YYYY', 'NLS_DATE_LANGUAGE=SPANISH') AS fecha,
+       paciente,
+       estado
+FROM v_consultas_recientes
+WHERE :nombre IS NULL OR UPPER(paciente) LIKE '%' || UPPER(:nombre) || '%'
+ORDER BY fecha_atencion DESC
+OFFSET NVL(:offset,0) ROWS FETCH NEXT NVL(:limit,25) ROWS ONLY;
+
+
+PROMPT 4.4) Ultima consulta (Uso de vistas)
+SELECT id_paciente,
+       cedula,
+       paciente,
+       id_consulta,
+       fecha_atencion,
+       motivo_consulta
+FROM v_ultima_consulta_por_paciente
+WHERE (:cedula IS NULL OR cedula = :cedula)
+  AND (:nombre IS NULL OR UPPER(paciente) LIKE '%' || UPPER(:nombre) || '%')
+ORDER BY fecha_atencion DESC;
+
+PROMPT 4.5) Ultima consulta por numero de cedula de paciente (Uso de vistas)
+SELECT id_paciente,
+       cedula,
+       paciente,
+       id_consulta,
+       fecha_atencion,
+       motivo_consulta
+FROM v_ultima_consulta_por_paciente
+WHERE (:cedula IS NULL OR cedula = :cedula)
+  AND (:nombre IS NULL OR UPPER(paciente) LIKE '%' || UPPER(:nombre) || '%')
+ORDER BY fecha_atencion DESC;

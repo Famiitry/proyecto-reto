@@ -253,3 +253,46 @@ BEGIN
     END IF;
 END;
 /
+
+
+
+-- ============================================================
+-- VISTAS ADICIONALES: CONSULTAS RECIENTES Y ÚLTIMA CONSULTA POR PACIENTE
+-- ============================================================
+
+-- Vista: últimas consultas globales (ordenadas por fecha de atención)
+CREATE OR REPLACE VIEW v_consultas_recientes AS
+SELECT c.id_consulta,
+       c.fecha_atencion,
+       TO_CHAR(c.fecha_atencion, 'DD Mon YYYY', 'NLS_DATE_LANGUAGE=SPANISH') AS fecha,
+       per.nombres || ' ' || per.apellidos AS paciente,
+       ec.codigo AS estado
+FROM consulta c
+JOIN cita ci ON c.id_cita = ci.id_cita AND c.fecha_cita = ci.fecha_hora
+JOIN paciente pa ON pa.id_paciente = ci.id_paciente
+JOIN persona per ON per.id_persona = pa.id_paciente
+JOIN estado_cita ec ON ec.id_estado = ci.id_estado;
+
+-- Vista: última consulta por paciente (una fila por paciente)
+CREATE OR REPLACE VIEW v_ultima_consulta_por_paciente AS
+SELECT id_paciente,
+             cedula,
+       paciente,
+       id_consulta,
+       fecha_atencion,
+       motivo_consulta
+FROM (
+  SELECT pa.id_paciente,
+                 per.cedula,
+         per.apellidos || ', ' || per.nombres AS paciente,
+         con.id_consulta,
+         con.fecha_atencion,
+         con.motivo_consulta,
+         ROW_NUMBER() OVER (PARTITION BY pa.id_paciente ORDER BY con.fecha_atencion DESC NULLS LAST) AS rn
+  FROM paciente pa
+  JOIN persona per ON per.id_persona = pa.id_paciente
+  LEFT JOIN cita ci ON ci.id_paciente = pa.id_paciente
+  LEFT JOIN consulta con ON con.id_cita = ci.id_cita AND con.fecha_cita = ci.fecha_hora
+)
+WHERE rn = 1;
+
