@@ -152,6 +152,7 @@ ORDER BY max_gap_dias DESC
 FETCH FIRST 20 ROWS ONLY;
 
 PROMPT 3.3) Ultima consulta por paciente (OUTER APPLY)
+ACCEPT nombre_paciente CHAR PROMPT 'Ingrese nombre o apellido del paciente: '
 SELECT p.id_persona AS id_paciente,
        p.apellidos || ', ' || p.nombres AS paciente,
        lc.id_consulta,
@@ -169,6 +170,7 @@ OUTER APPLY (
   ORDER BY con.fecha_atencion DESC
   FETCH FIRST 1 ROW ONLY
 ) lc
+WHERE UPPER(p.nombres || ' ' || p.apellidos) LIKE '%' || UPPER('&nombre_paciente') || '%'
 ORDER BY p.id_persona;
 
 PROMPT 3.4) Pacientes con uso alto vs promedio (z-score)
@@ -182,11 +184,12 @@ WITH uso AS (
          STDDEV(total_citas) AS sd_citas
   FROM uso
 )
-SELECT u.id_paciente,
+SELECT p.apellidos || ', ' || p.nombres AS paciente,
        u.total_citas,
        ROUND((u.total_citas - s.avg_citas) / NULLIF(s.sd_citas, 0), 2) AS z_score
 FROM uso u
 CROSS JOIN stats s
+JOIN persona p ON p.id_persona = u.id_paciente
 ORDER BY z_score DESC NULLS LAST
 FETCH FIRST 20 ROWS ONLY;
 
