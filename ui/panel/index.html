@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel REST - Gestión Médica</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<header class="header">
+  <h1>Sistema de Gestión Médica</h1>
+  <nav class="nav">
+    <a href="/">Dashboard</a>
+    <a href="/pacientes">Pacientes</a>
+    <a href="/citas">Citas</a>
+    <a href="/consultas">Consultas</a>
+    <a href="/panel" class="active">Panel REST</a>
+    <a href="/api-docs" target="_blank">Swagger</a>
+  </nav>
+</header>
+
+<main class="main">
+  <div class="card">
+    <h3>Consola REST</h3>
+    <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:0.75rem">
+      Genere peticiones a cualquier endpoint de la API. La autenticación se incluye automáticamente.
+    </p>
+
+    <div class="toolbar">
+      <select id="method" style="width:100px">
+        <option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option>
+      </select>
+      <input type="text" id="url" placeholder="/api/pacientes" value="/api/pacientes" style="flex:1;min-width:300px">
+      <button class="btn" onclick="ejecutar()">Enviar</button>
+    </div>
+
+    <div style="margin-bottom:0.5rem">
+      <label style="font-size:0.8rem;font-weight:600;color:var(--text-secondary);display:flex;align-items:center;gap:0.5rem">
+        <input type="checkbox" id="showBody" onchange="toggleBody()"> Incluir body (POST/PUT)
+      </label>
+    </div>
+
+    <textarea id="bodyInput" style="width:100%;height:120px;font-family:monospace;font-size:0.8rem;padding:0.5rem;border:1px solid var(--border);border-radius:var(--radius);display:none" placeholder='{"cedula": "0102000099", "nombres": "Test", ...}'></textarea>
+
+    <div class="toolbar" style="margin-top:0.5rem">
+      <span style="font-size:0.8rem;color:var(--text-secondary)">Endpoints rápidos:</span>
+      <button class="btn btn-sm" onclick="cargar('/api/pacientes')">GET pacientes</button>
+      <button class="btn btn-sm" onclick="cargar('/api/pacientes/16')">GET paciente 16</button>
+      <button class="btn btn-sm" onclick="cargar('/api/medicos')">GET médicos</button>
+      <button class="btn btn-sm" onclick="cargar('/api/citas')">GET citas</button>
+      <button class="btn btn-sm" onclick="cargar('/api/consultas')">GET consultas</button>
+      <button class="btn btn-sm" onclick="cargar('/api/agregados/historia/16')">GET historia 16</button>
+      <button class="btn btn-sm" onclick="cargar('/api/agregados/diagnosticos-frecuentes')">GET diag frecuentes</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Respuesta <span id="statusCode" style="font-size:0.85rem;font-weight:normal;margin-left:0.5rem"></span></h3>
+    <pre id="responseArea">Seleccione un endpoint y presione "Enviar".</pre>
+  </div>
+</main>
+
+<script>
+const KEY = 'demo-key-2026';
+
+function toggleBody() {
+  document.getElementById('bodyInput').style.display =
+    document.getElementById('showBody').checked ? 'block' : 'none';
+}
+
+function cargar(url, method) {
+  document.getElementById('url').value = url;
+  document.getElementById('method').value = method || 'GET';
+  ejecutar();
+}
+
+async function ejecutar() {
+  const method = document.getElementById('method').value;
+  const url = document.getElementById('url').value;
+  const area = document.getElementById('responseArea');
+  const status = document.getElementById('statusCode');
+  area.textContent = 'Cargando...';
+  status.textContent = '';
+
+  const opts = {
+    method,
+    headers: { 'X-API-Key': KEY }
+  };
+
+  if (method === 'POST' || method === 'PUT') {
+    opts.headers['Content-Type'] = 'application/json';
+    const body = document.getElementById('bodyInput').value.trim();
+    if (body) opts.body = body;
+  }
+
+  try {
+    const r = await fetch(url, opts);
+    status.textContent = `[${r.status} ${r.statusText}]`;
+    const contentType = r.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      area.textContent = JSON.stringify(await r.json(), null, 2);
+    } else {
+      area.textContent = await r.text();
+    }
+  } catch (e) {
+    area.textContent = 'Error: ' + e.message;
+    status.textContent = '[Error de conexión]';
+  }
+}
+</script>
+</body>
+</html>

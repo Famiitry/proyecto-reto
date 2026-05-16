@@ -1,0 +1,352 @@
+{
+  "info": {
+    "name": "API Gestión Médica - Proyecto Reto",
+    "description": "Colección completa de endpoints para el sistema de gestión médica.\n\n**Autenticación:** Header `X-API-Key: demo-key-2026`\n**Base URL:** http://localhost:3000\n\nIncluye ejemplos correctos e incorrectos para cada recurso.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "apiKey", "value": "demo-key-2026" }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      { "key": "key", "value": "X-API-Key", "type": "string" },
+      { "key": "value", "value": "{{apiKey}}", "type": "string" },
+      { "key": "in", "value": "header", "type": "string" }
+    ]
+  },
+  "item": [
+    {
+      "name": "Pacientes",
+      "item": [
+        {
+          "name": "GET Listar pacientes",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));", "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/pacientes", "host": ["{{baseUrl}}"], "path": ["api", "pacientes"] } }
+        },
+        {
+          "name": "GET Pacientes por apellido",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/pacientes?apellido=Pérez", "host": ["{{baseUrl}}"], "path": ["api", "pacientes"], "query": [{ "key": "apellido", "value": "Pérez" }] } }
+        },
+        {
+          "name": "GET Paciente por ID",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));", "pm.test('Tiene historia_clinica', () => pm.response.to.have.jsonBody('HISTORIA_CLINICA'));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/pacientes/16", "host": ["{{baseUrl}}"], "path": ["api", "pacientes", "16"] } }
+        },
+        {
+          "name": "GET Paciente inexistente (incorrecto)",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 404', () => pm.response.to.have.status(404));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/pacientes/99999", "host": ["{{baseUrl}}"], "path": ["api", "pacientes", "99999"] } }
+        },
+        {
+          "name": "POST Crear paciente",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 201', () => pm.response.to.have.status(201));"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/api/pacientes", "host": ["{{baseUrl}}"], "path": ["api", "pacientes"] },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"cedula\": \"0102999999\",\n  \"nombres\": \"Juan Carlos\",\n  \"apellidos\": \"Test Creacion\",\n  \"fecha_nacimiento\": \"1995-06-15\",\n  \"sexo\": \"M\",\n  \"email\": \"test.creacion@mail.com\",\n  \"historia_clinica\": \"HC-TEST-CREATE\"\n}" }
+          }
+        },
+        {
+          "name": "POST Crear paciente sin campos requeridos (incorrecto)",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 4xx o 5xx', () => pm.response.code >= 400);"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/api/pacientes", "host": ["{{baseUrl}}"], "path": ["api", "pacientes"] },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"nombres\": \"Sin Datos\"\n}" }
+          }
+        },
+        {
+          "name": "PUT Actualizar paciente",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }],
+          "request": {
+            "method": "PUT",
+            "url": { "raw": "{{baseUrl}}/api/pacientes/16", "host": ["{{baseUrl}}"], "path": ["api", "pacientes", "16"] },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"cedula\": \"0102000016\",\n  \"nombres\": \"Ana Lucía\",\n  \"apellidos\": \"Pérez Mosquera\",\n  \"fecha_nacimiento\": \"1990-04-12\",\n  \"sexo\": \"F\",\n  \"email\": \"ana.perez@mail.com\",\n  \"tipo_sangre\": \"A\",\n  \"factor_rh\": \"+\",\n  \"ocupacion\": \"Estudiante\",\n  \"estado_civil\": \"SOLTERO\"\n}" }
+          }
+        },
+        {
+          "name": "DELETE Eliminar paciente",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }],
+          "request": { "method": "DELETE", "url": { "raw": "{{baseUrl}}/api/pacientes/99999", "host": ["{{baseUrl}}"], "path": ["api", "pacientes", "99999"] } }
+        },
+        {
+          "name": "DELETE Eliminar paciente inexistente (incorrecto)",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200 o 404', () => pm.response.code >= 200 && pm.response.code < 500);"], "type": "text/javascript" } }],
+          "request": { "method": "DELETE", "url": { "raw": "{{baseUrl}}/api/pacientes/99999", "host": ["{{baseUrl}}"], "path": ["api", "pacientes", "99999"] } }
+        }
+      ]
+    },
+    {
+      "name": "Médicos",
+      "item": [
+        {
+          "name": "GET Listar médicos",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/medicos", "host": ["{{baseUrl}}"], "path": ["api", "medicos"] } }
+        },
+        {
+          "name": "GET Médicos por especialidad",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/medicos?especialidad=cardiologia", "host": ["{{baseUrl}}"], "path": ["api", "medicos"], "query": [{ "key": "especialidad", "value": "cardiologia" }] } }
+        },
+        {
+          "name": "GET Médico por ID",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/medicos/1", "host": ["{{baseUrl}}"], "path": ["api", "medicos", "1"] } }
+        },
+        {
+          "name": "GET Médico inexistente (incorrecto)",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 404', () => pm.response.to.have.status(404));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/medicos/999", "host": ["{{baseUrl}}"], "path": ["api", "medicos", "999"] } }
+        },
+        {
+          "name": "GET Especialidades de médico",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/medicos/1/especialidades", "host": ["{{baseUrl}}"], "path": ["api", "medicos", "1", "especialidades"] } }
+        },
+        {
+          "name": "POST Crear médico",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/api/medicos", "host": ["{{baseUrl}}"], "path": ["api", "medicos"] },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"cedula\": \"0101999999\",\n  \"nombres\": \"Maria Test\",\n  \"apellidos\": \"Api Creacion\",\n  \"fecha_nacimiento\": \"1980-01-15\",\n  \"sexo\": \"F\",\n  \"email\": \"mariatest@hosp.ec\",\n  \"num_registro\": \"MSP-TEST99\",\n  \"fecha_ingreso\": \"2020-01-10\",\n  \"titulo_principal\": \"Dra. en Medicina\"\n}" }
+          }
+        },
+        {
+          "name": "POST Crear médico sin campos (incorrecto)",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status error', () => pm.response.code >= 400);"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/api/medicos", "host": ["{{baseUrl}}"], "path": ["api", "medicos"] },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{}" }
+          }
+        },
+        {
+          "name": "PUT Actualizar médico",
+          "request": {
+            "method": "PUT",
+            "url": { "raw": "{{baseUrl}}/api/medicos/1", "host": ["{{baseUrl}}"], "path": ["api", "medicos", "1"] },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"cedula\": \"0101000001\",\n  \"nombres\": \"Carlos Andrés\",\n  \"apellidos\": \"Vásquez León\",\n  \"fecha_nacimiento\": \"1975-03-12\",\n  \"sexo\": \"M\",\n  \"email\": \"c.vasquez@hosp.ec\",\n  \"num_registro\": \"MSP-00001\",\n  \"titulo_principal\": \"Dr. en Medicina y Endocrinología\"\n}" }
+          }
+        },
+        {
+          "name": "DELETE Eliminar médico",
+          "request": { "method": "DELETE", "url": { "raw": "{{baseUrl}}/api/medicos/999", "host": ["{{baseUrl}}"], "path": ["api", "medicos", "999"] } }
+        }
+      ]
+    },
+    {
+      "name": "Citas",
+      "item": [
+        {
+          "name": "GET Listar citas",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/citas", "host": ["{{baseUrl}}"], "path": ["api", "citas"] } }
+        },
+        {
+          "name": "GET Citas por estado ATENDIDA",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/citas?estado=ATENDIDA", "host": ["{{baseUrl}}"], "path": ["api", "citas"], "query": [{ "key": "estado", "value": "ATENDIDA" }] } }
+        },
+        {
+          "name": "GET Citas de un paciente",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/citas?paciente=16", "host": ["{{baseUrl}}"], "path": ["api", "citas"], "query": [{ "key": "paciente", "value": "16" }] } }
+        },
+        {
+          "name": "GET Citas con estado inválido (incorrecto)",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200 y vacío', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/citas?estado=INVALIDO", "host": ["{{baseUrl}}"], "path": ["api", "citas"], "query": [{ "key": "estado", "value": "INVALIDO" }] } }
+        },
+        {
+          "name": "GET Cita por ID",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/citas/1", "host": ["{{baseUrl}}"], "path": ["api", "citas", "1"] } }
+        },
+        {
+          "name": "GET Cita inexistente (incorrecto)",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 404', () => pm.response.to.have.status(404));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/citas/99999", "host": ["{{baseUrl}}"], "path": ["api", "citas", "99999"] } }
+        },
+        {
+          "name": "POST Crear cita",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 201', () => pm.response.to.have.status(201));"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/api/citas", "host": ["{{baseUrl}}"], "path": ["api", "citas"] },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"id_paciente\": 16,\n  \"id_medico\": 1,\n  \"id_consultorio\": 1,\n  \"fecha_hora\": \"2026-06-01 09:00:00\",\n  \"duracion_min\": 30,\n  \"motivo_solicitud\": \"Control de rutina\"\n}" }
+          }
+        },
+        {
+          "name": "POST Crear cita sin campos (incorrecto)",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status error', () => pm.response.code >= 400);"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/api/citas", "host": ["{{baseUrl}}"], "path": ["api", "citas"] },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{}" }
+          }
+        },
+        {
+          "name": "PUT Actualizar estado de cita",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }],
+          "request": {
+            "method": "PUT",
+            "url": { "raw": "{{baseUrl}}/api/citas/42", "host": ["{{baseUrl}}"], "path": ["api", "citas", "42"] },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"id_estado\": 1\n}" }
+          }
+        },
+        {
+          "name": "PUT Actualizar cita sin campos (incorrecto)",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 400', () => pm.response.to.have.status(400));"], "type": "text/javascript" } }],
+          "request": {
+            "method": "PUT",
+            "url": { "raw": "{{baseUrl}}/api/citas/1", "host": ["{{baseUrl}}"], "path": ["api", "citas", "1"] },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{}" }
+          }
+        },
+        {
+          "name": "DELETE Eliminar cita",
+          "request": { "method": "DELETE", "url": { "raw": "{{baseUrl}}/api/citas/50", "host": ["{{baseUrl}}"], "path": ["api", "citas", "50"] } }
+        }
+      ]
+    },
+    {
+      "name": "Consultas",
+      "item": [
+        {
+          "name": "GET Listar consultas",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/consultas", "host": ["{{baseUrl}}"], "path": ["api", "consultas"] } }
+        },
+        {
+          "name": "GET Consultas de un paciente",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/consultas?paciente=16", "host": ["{{baseUrl}}"], "path": ["api", "consultas"], "query": [{ "key": "paciente", "value": "16" }] } }
+        },
+        {
+          "name": "GET Consulta por ID",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/consultas/1", "host": ["{{baseUrl}}"], "path": ["api", "consultas", "1"] } }
+        },
+        {
+          "name": "GET Consulta inexistente (incorrecto)",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 404', () => pm.response.to.have.status(404));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/consultas/99999", "host": ["{{baseUrl}}"], "path": ["api", "consultas", "99999"] } }
+        },
+        {
+          "name": "GET Diagnósticos de consulta",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/consultas/1/diagnosticos", "host": ["{{baseUrl}}"], "path": ["api", "consultas", "1", "diagnosticos"] } }
+        },
+        {
+          "name": "GET Signos vitales de consulta",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/consultas/1/signos", "host": ["{{baseUrl}}"], "path": ["api", "consultas", "1", "signos"] } }
+        },
+        {
+          "name": "GET Recetas de consulta",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/consultas/1/recetas", "host": ["{{baseUrl}}"], "path": ["api", "consultas", "1", "recetas"] } }
+        },
+        {
+          "name": "POST Crear consulta",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 201', () => pm.response.to.have.status(201));"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/api/consultas", "host": ["{{baseUrl}}"], "path": ["api", "consultas"] },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"id_cita\": 42,\n  \"motivo_consulta\": \"Control de hipertensión arterial\",\n  \"enfermedad_actual\": \"Paciente refiere cefalea ocasional y mareos leves en las últimas 2 semanas.\",\n  \"examen_fisico\": \"Paciente en buen estado general. PA 130/85 mmHg.\",\n  \"plan_tratamiento\": \"Continuar Losartán 50mg. Control en 30 días. Dieta baja en sodio.\"\n}" }
+          }
+        },
+        {
+          "name": "POST Crear consulta sin id_cita (incorrecto)",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status error', () => pm.response.code >= 400);"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/api/consultas", "host": ["{{baseUrl}}"], "path": ["api", "consultas"] },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"motivo_consulta\": \"Sin cita asociada\"\n}" }
+          }
+        },
+        {
+          "name": "PUT Actualizar consulta",
+          "request": {
+            "method": "PUT",
+            "url": { "raw": "{{baseUrl}}/api/consultas/1", "host": ["{{baseUrl}}"], "path": ["api", "consultas", "1"] },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"motivo_consulta\": \"Control de rutina actualizado\",\n  \"plan_tratamiento\": \"Reposo relativo, control en 7 días.\"\n}" }
+          }
+        },
+        {
+          "name": "DELETE Eliminar consulta",
+          "request": { "method": "DELETE", "url": { "raw": "{{baseUrl}}/api/consultas/35", "host": ["{{baseUrl}}"], "path": ["api", "consultas", "35"] } }
+        }
+      ]
+    },
+    {
+      "name": "Agregados",
+      "item": [
+        {
+          "name": "GET Historia clínica de paciente",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/agregados/historia/16", "host": ["{{baseUrl}}"], "path": ["api", "agregados", "historia", "16"] } }
+        },
+        {
+          "name": "GET Historia clínica - paciente sin consultas (incorrecto)",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 404', () => pm.response.to.have.status(404));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/agregados/historia/999", "host": ["{{baseUrl}}"], "path": ["api", "agregados", "historia", "999"] } }
+        },
+        {
+          "name": "GET Citas por médico",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/agregados/citas-por-medico", "host": ["{{baseUrl}}"], "path": ["api", "agregados", "citas-por-medico"] } }
+        },
+        {
+          "name": "GET Citas por médico con rango de fechas",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/agregados/citas-por-medico?desde=2025-01-01&hasta=2026-12-31", "host": ["{{baseUrl}}"], "path": ["api", "agregados", "citas-por-medico"], "query": [{ "key": "desde", "value": "2025-01-01" }, { "key": "hasta", "value": "2026-12-31" }] } }
+        },
+        {
+          "name": "GET Diagnósticos frecuentes",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/agregados/diagnosticos-frecuentes?limite=5", "host": ["{{baseUrl}}"], "path": ["api", "agregados", "diagnosticos-frecuentes"], "query": [{ "key": "limite", "value": "5" }] } }
+        },
+        {
+          "name": "GET Citas por estado",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/agregados/citas-por-estado", "host": ["{{baseUrl}}"], "path": ["api", "agregados", "citas-por-estado"] } }
+        },
+        {
+          "name": "GET Pacientes con alergias severas",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));", "pm.test('Solo severas/anafilacticas', () => { const d = pm.response.json(); d.forEach(r => pm.expect(['SEVERA','ANAFILACTICA']).to.include(r.SEVERIDAD)); });"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/agregados/pacientes-alergias-severas", "host": ["{{baseUrl}}"], "path": ["api", "agregados", "pacientes-alergias-severas"] } }
+        }
+      ]
+    },
+    {
+      "name": "Seguridad",
+      "item": [
+        {
+          "name": "Acceso sin API Key (incorrecto)",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 401', () => pm.response.to.have.status(401));"], "type": "text/javascript" } }],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/pacientes", "host": ["{{baseUrl}}"], "path": ["api", "pacientes"] },
+            "auth": { "type": "noauth" },
+            "header": []
+          }
+        },
+        {
+          "name": "Acceso con API Key inválida (incorrecto)",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 401', () => pm.response.to.have.status(401));"], "type": "text/javascript" } }],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/pacientes", "host": ["{{baseUrl}}"], "path": ["api", "pacientes"] },
+            "header": [{ "key": "X-API-Key", "value": "clave-invalida-12345" }]
+          }
+        }
+      ]
+    }
+  ]
+}

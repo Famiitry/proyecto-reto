@@ -1,0 +1,641 @@
+openapi: "3.0.3"
+info:
+  title: API Gestión Médica
+  description: |
+    API REST para el sistema de gestión médica del Proyecto Reto.
+    Proporciona endpoints CRUD para pacientes, médicos, citas y consultas,
+    además de endpoints agregados para historia clínica y reportes.
+
+    **Autenticación:** API Key vía header `X-API-Key`.
+  version: "1.0.0"
+  contact:
+    name: Equipo Proyecto Reto
+
+servers:
+  - url: http://localhost:3000
+    description: Servidor local de desarrollo
+
+security:
+  - ApiKeyAuth: []
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API Key para autenticación (configurada en .env)
+
+  schemas:
+    Paciente:
+      type: object
+      properties:
+        id_paciente:     { type: integer }
+        cedula:          { type: string }
+        nombres:         { type: string }
+        apellidos:       { type: string }
+        fecha_nacimiento:{ type: string, format: date }
+        sexo:            { type: string, enum: [M, F, X] }
+        email:           { type: string }
+        historia_clinica:{ type: string }
+        tipo_sangre:     { type: string, enum: [A, B, AB, O] }
+        factor_rh:       { type: string, enum: ["+", "-"] }
+        ocupacion:       { type: string }
+        estado_civil:    { type: string }
+        contacto_emergencia_nombre:    { type: string }
+        contacto_emergencia_telefono:  { type: string }
+    Medico:
+      type: object
+      properties:
+        id_medico:      { type: integer }
+        cedula:         { type: string }
+        nombres:        { type: string }
+        apellidos:      { type: string }
+        sexo:           { type: string }
+        email:          { type: string }
+        num_registro:   { type: string }
+        fecha_ingreso:  { type: string, format: date }
+        titulo_principal: { type: string }
+    Cita:
+      type: object
+      properties:
+        id_cita:          { type: integer }
+        id_paciente:      { type: integer }
+        id_medico:        { type: integer }
+        id_consultorio:   { type: integer }
+        id_estado:        { type: integer }
+        fecha_hora:       { type: string, format: date-time }
+        duracion_min:     { type: integer }
+        motivo_solicitud: { type: string }
+        paciente_nombre:  { type: string }
+        medico_nombre:    { type: string }
+        consultorio_cod:  { type: string }
+        estado_codigo:    { type: string }
+        estado_desc:      { type: string }
+    Consulta:
+      type: object
+      properties:
+        id_consulta:       { type: integer }
+        id_cita:           { type: integer }
+        fecha_atencion:    { type: string, format: date-time }
+        motivo_consulta:   { type: string }
+        enfermedad_actual: { type: string }
+        examen_fisico:     { type: string }
+        plan_tratamiento:  { type: string }
+        anamnesis:         { type: string }
+        paciente_nombre:   { type: string }
+        medico_nombre:     { type: string }
+    Diagnostico:
+      type: object
+      properties:
+        codigo_cie:   { type: string }
+        tipo:         { type: string, enum: [P, S, D] }
+        observacion:  { type: string }
+        descripcion:  { type: string }
+        capitulo:     { type: string }
+    SignosVitales:
+      type: object
+      properties:
+        presion_sistolica:  { type: integer }
+        presion_diastolica: { type: integer }
+        frec_cardiaca:      { type: integer }
+        frec_respiratoria:  { type: integer }
+        temperatura:        { type: number }
+        saturacion_o2:      { type: integer }
+        peso_kg:            { type: number }
+        talla_cm:           { type: number }
+    Receta:
+      type: object
+      properties:
+        id_receta:       { type: integer }
+        fecha_emision:   { type: string, format: date-time }
+        validez_dias:    { type: integer }
+        observaciones:   { type: string }
+        id_medicamento:  { type: integer }
+        dosis:           { type: string }
+        frecuencia:      { type: string }
+        duracion_dias:   { type: integer }
+        indicaciones:    { type: string }
+        nombre_generico: { type: string }
+        concentracion:   { type: string }
+        forma_farma:     { type: string }
+        via_admin:       { type: string }
+    HistoriaClinica:
+      type: object
+      properties:
+        id_consulta:     { type: integer }
+        fecha_atencion:  { type: string, format: date-time }
+        medico:          { type: string }
+        diagnosticos:    { type: string }
+    CitasPorMedico:
+      type: object
+      properties:
+        id_medico:    { type: integer }
+        medico:       { type: string }
+        total_citas:  { type: integer }
+    DiagnosticoFrecuente:
+      type: object
+      properties:
+        codigo_cie:         { type: string }
+        descripcion:        { type: string }
+        total_diagnosticos: { type: integer }
+    Error:
+      type: object
+      properties:
+        error:   { type: string }
+        message: { type: string }
+
+paths:
+  /api/pacientes:
+    get:
+      tags: [Pacientes]
+      summary: Listar pacientes
+      parameters:
+        - name: apellido
+          in: query
+          schema: { type: string }
+        - name: cedula
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Paciente" }
+    post:
+      tags: [Pacientes]
+      summary: Crear paciente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [cedula, nombres, apellidos, fecha_nacimiento, sexo, historia_clinica]
+              properties:
+                cedula: { type: string }
+                nombres: { type: string }
+                apellidos: { type: string }
+                fecha_nacimiento: { type: string }
+                sexo: { type: string, enum: [M, F, X] }
+                email: { type: string }
+                historia_clinica: { type: string }
+                tipo_sangre: { type: string }
+                factor_rh: { type: string }
+                ocupacion: { type: string }
+                estado_civil: { type: string }
+                contacto_emergencia_nombre: { type: string }
+                contacto_emergencia_telefono: { type: string }
+      responses:
+        "201": { description: Creado }
+        "409": { description: Conflicto (duplicado) }
+
+  /api/pacientes/{id}:
+    get:
+      tags: [Pacientes]
+      summary: Obtener paciente por ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200": { description: OK }
+        "404": { description: No encontrado }
+    put:
+      tags: [Pacientes]
+      summary: Actualizar paciente
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cedula: { type: string }
+                nombres: { type: string }
+                apellidos: { type: string }
+                fecha_nacimiento: { type: string }
+                sexo: { type: string }
+                email: { type: string }
+                tipo_sangre: { type: string }
+                factor_rh: { type: string }
+                ocupacion: { type: string }
+                estado_civil: { type: string }
+                contacto_emergencia_nombre: { type: string }
+                contacto_emergencia_telefono: { type: string }
+      responses:
+        "200": { description: Actualizado }
+    delete:
+      tags: [Pacientes]
+      summary: Eliminar paciente
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200": { description: Eliminado }
+
+  /api/medicos:
+    get:
+      tags: [Médicos]
+      summary: Listar médicos
+      parameters:
+        - name: apellido
+          in: query
+          schema: { type: string }
+        - name: especialidad
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Medico" }
+    post:
+      tags: [Médicos]
+      summary: Crear médico
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [cedula, nombres, apellidos, fecha_nacimiento, sexo, num_registro, fecha_ingreso, titulo_principal]
+              properties:
+                cedula: { type: string }
+                nombres: { type: string }
+                apellidos: { type: string }
+                fecha_nacimiento: { type: string }
+                sexo: { type: string }
+                email: { type: string }
+                num_registro: { type: string }
+                fecha_ingreso: { type: string }
+                titulo_principal: { type: string }
+      responses:
+        "201": { description: Creado }
+
+  /api/medicos/{id}:
+    get:
+      tags: [Médicos]
+      summary: Obtener médico por ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200": { description: OK }
+        "404": { description: No encontrado }
+    put:
+      tags: [Médicos]
+      summary: Actualizar médico
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cedula: { type: string }
+                nombres: { type: string }
+                apellidos: { type: string }
+                fecha_nacimiento: { type: string }
+                sexo: { type: string }
+                email: { type: string }
+                num_registro: { type: string }
+                titulo_principal: { type: string }
+      responses:
+        "200": { description: Actualizado }
+    delete:
+      tags: [Médicos]
+      summary: Eliminar médico
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200": { description: Eliminado }
+
+  /api/medicos/{id}/especialidades:
+    get:
+      tags: [Médicos]
+      summary: Especialidades del médico
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200": { description: OK }
+
+  /api/citas:
+    get:
+      tags: [Citas]
+      summary: Listar citas
+      parameters:
+        - name: paciente
+          in: query
+          schema: { type: integer }
+        - name: medico
+          in: query
+          schema: { type: integer }
+        - name: estado
+          in: query
+          schema: { type: string }
+        - name: desde
+          in: query
+          schema: { type: string, format: date }
+        - name: hasta
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Cita" }
+    post:
+      tags: [Citas]
+      summary: Crear cita
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id_paciente, id_medico, id_consultorio, fecha_hora]
+              properties:
+                id_paciente: { type: integer }
+                id_medico: { type: integer }
+                id_consultorio: { type: integer }
+                fecha_hora: { type: string, format: date-time }
+                duracion_min: { type: integer, default: 30 }
+                motivo_solicitud: { type: string }
+      responses:
+        "201": { description: Creada }
+
+  /api/citas/{id}:
+    get:
+      tags: [Citas]
+      summary: Obtener cita por ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200": { description: OK }
+        "404": { description: No encontrada }
+    put:
+      tags: [Citas]
+      summary: Actualizar cita
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id_estado: { type: integer }
+                fecha_hora: { type: string, format: date-time }
+                duracion_min: { type: integer }
+                motivo_solicitud: { type: string }
+      responses:
+        "200": { description: Actualizada }
+    delete:
+      tags: [Citas]
+      summary: Eliminar cita
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200": { description: Eliminada }
+
+  /api/consultas:
+    get:
+      tags: [Consultas]
+      summary: Listar consultas
+      parameters:
+        - name: paciente
+          in: query
+          schema: { type: integer }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Consulta" }
+    post:
+      tags: [Consultas]
+      summary: Crear consulta
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id_cita, motivo_consulta]
+              properties:
+                id_cita: { type: integer }
+                motivo_consulta: { type: string }
+                enfermedad_actual: { type: string }
+                examen_fisico: { type: string }
+                plan_tratamiento: { type: string }
+                anamnesis: { type: string }
+      responses:
+        "201": { description: Creada }
+
+  /api/consultas/{id}:
+    get:
+      tags: [Consultas]
+      summary: Obtener consulta por ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200": { description: OK }
+        "404": { description: No encontrada }
+    put:
+      tags: [Consultas]
+      summary: Actualizar consulta
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                motivo_consulta: { type: string }
+                enfermedad_actual: { type: string }
+                examen_fisico: { type: string }
+                plan_tratamiento: { type: string }
+      responses:
+        "200": { description: Actualizada }
+    delete:
+      tags: [Consultas]
+      summary: Eliminar consulta
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200": { description: Eliminada }
+
+  /api/consultas/{id}/diagnosticos:
+    get:
+      tags: [Consultas]
+      summary: Diagnósticos de una consulta
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Diagnostico" }
+
+  /api/consultas/{id}/signos:
+    get:
+      tags: [Consultas]
+      summary: Signos vitales de una consulta
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SignosVitales" }
+
+  /api/consultas/{id}/recetas:
+    get:
+      tags: [Consultas]
+      summary: Recetas de una consulta
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Receta" }
+
+  /api/agregados/historia/{idPaciente}:
+    get:
+      tags: [Agregados]
+      summary: Historia clínica resumida de un paciente
+      parameters:
+        - name: idPaciente
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/HistoriaClinica" }
+        "404": { description: Sin consultas }
+
+  /api/agregados/citas-por-medico:
+    get:
+      tags: [Agregados]
+      summary: Citas por médico
+      parameters:
+        - name: desde
+          in: query
+          schema: { type: string, format: date }
+        - name: hasta
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/CitasPorMedico" }
+
+  /api/agregados/diagnosticos-frecuentes:
+    get:
+      tags: [Agregados]
+      summary: Diagnósticos más frecuentes
+      parameters:
+        - name: limite
+          in: query
+          schema: { type: integer, default: 10 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/DiagnosticoFrecuente" }
+
+  /api/agregados/citas-por-estado:
+    get:
+      tags: [Agregados]
+      summary: Conteo de citas por estado
+      responses:
+        "200": { description: OK }
+
+  /api/agregados/pacientes-alergias-severas:
+    get:
+      tags: [Agregados]
+      summary: Pacientes con alergias severas o anafilácticas
+      responses:
+        "200": { description: OK }

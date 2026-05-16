@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consultas - Gestión Médica</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<header class="header">
+  <h1>Sistema de Gestión Médica</h1>
+  <nav class="nav">
+    <a href="/">Dashboard</a>
+    <a href="/pacientes">Pacientes</a>
+    <a href="/citas">Citas</a>
+    <a href="/consultas" class="active">Consultas</a>
+    <a href="/panel">Panel REST</a>
+    <a href="/api-docs" target="_blank">Swagger</a>
+  </nav>
+</header>
+
+<main class="main">
+  <div class="card">
+    <div class="toolbar">
+      <input type="number" id="filtroPaciente" placeholder="ID Paciente" onchange="cargarConsultas()" style="width:120px">
+      <button class="btn btn-sm" onclick="cargarConsultas()">Filtrar</button>
+      <span style="margin-left:auto;font-size:0.85rem;color:var(--text-secondary)">
+        Haga clic en una consulta para ver su detalle completo
+      </span>
+    </div>
+
+    <div id="consultasList"></div>
+  </div>
+
+  <div id="detalleConsulta" class="card" style="display:none">
+    <h3 id="detTitulo"></h3>
+    <div id="detContenido"></div>
+  </div>
+</main>
+
+<script>
+const API = '/api';
+const H = { 'X-API-Key': 'demo-key-2026' };
+
+async function fetchJSON(url) {
+  const r = await fetch(url, { headers: H });
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
+}
+
+async function cargarConsultas() {
+  const paciente = document.getElementById('filtroPaciente').value;
+  const url = paciente ? `${API}/consultas?paciente=${paciente}` : `${API}/consultas`;
+  document.getElementById('consultasList').innerHTML = '<p class="loading">Cargando consultas...</p>';
+  try {
+    const data = await fetchJSON(url);
+    renderTabla(data);
+  } catch (e) {
+    document.getElementById('consultasList').innerHTML = `<p class="error-msg">Error: ${e.message}</p>`;
+  }
+}
+
+function renderTabla(data) {
+  if (!data.length) {
+    document.getElementById('consultasList').innerHTML = '<p class="empty-state">No se encontraron consultas.</p>';
+    return;
+  }
+  const html = `<table class="table"><thead><tr>
+    <th>ID</th><th>Fecha atención</th><th>Paciente</th><th>Médico</th>
+    <th>Motivo</th><th>Detalle</th>
+  </tr></thead><tbody>${data.map(c => `<tr>
+    <td>${c.ID_CONSULTA}</td>
+    <td>${c.FECHA_ATENCION?.substring(0,16)}</td>
+    <td>${c.PACIENTE_NOMBRE}</td>
+    <td>${c.MEDICO_NOMBRE}</td>
+    <td>${c.MOTIVO_CONSULTA?.substring(0,60)}</td>
+    <td><a href="#" onclick="verDetalle(${c.ID_CONSULTA})">Ver completo</a></td>
+  </tr>`).join('')}</tbody></table>`;
+  document.getElementById('consultasList').innerHTML = html;
+}
+
+async function verDetalle(id) {
+  try {
+    const [consulta, diagnosticos, signos, recetas] = await Promise.all([
+      fetchJSON(`${API}/consultas/${id}`),
+      fetchJSON(`${API}/consultas/${id}/diagnosticos`).catch(() => []),
+      fetchJSON(`${API}/consultas/${id}/signos`).catch(() => null),
+      fetchJSON(`${API}/consultas/${id}/recetas`).catch(() => []),
+    ]);
+
+    const d = document.getElementById('detalleConsulta');
+    d.style.display = 'block';
+    document.getElementById('detTitulo').textContent =
+      `Consulta #${id} - ${consulta.PACIENTE_NOMBRE} - ${consulta.FECHA_ATENCION?.substring(0,16)}`;
+
+    let html = `<h4 class="section-title">Datos de la consulta</h4>
+    <dl class="detail-grid">
+      <dt>Médico</dt><dd>${consulta.MEDICO_NOMBRE}</dd>
+      <dt>Motivo</dt><dd>${consulta.MOTIVO_CONSULTA}</dd>
+      <dt>Enfermedad actual</dt><dd>${consulta.ENFERMEDAD_ACTUAL||'-'}</dd>
+      <dt>Examen físico</dt><dd>${consulta.EXAMEN_FISICO||'-'}</dd>
+      <dt>Plan de tratamiento</dt><dd>${consulta.PLAN_TRATAMIENTO||'-'}</dd>
+    </dl>`;
+
+    if (signos) {
+      html += `<h4 class="section-title">Signos vitales</h4>
+      <dl class="detail-grid">
+        <dt>Presión</dt><dd>${signos.PRESION_SISTOLICA}/${signos.PRESION_DIASTOLICA} mmHg</dd>
+        <dt>Frec. cardíaca</dt><dd>${signos.FREC_CARDIACA} lpm</dd>
+        <dt>Frec. respiratoria</dt><dd>${signos.FREC_RESPIRATORIA} rpm</dd>
+        <dt>Temperatura</dt><dd>${signos.TEMPERATURA}°C</dd>
+        <dt>Saturación O₂</dt><dd>${signos.SATURACION_O2}%</dd>
+        <dt>Peso</dt><dd>${signos.PESO_KG} kg</dd>
+        <dt>Talla</dt><dd>${signos.TALLA_CM} cm</dd>
+      </dl>`;
+    }
+
+    if (diagnosticos.length) {
+      html += `<h4 class="section-title">Diagnósticos (${diagnosticos.length})</h4>
+      <table class="table"><thead><tr><th>Código CIE-10</th><th>Descripción</th><th>Tipo</th><th>Capítulo</th></tr></thead><tbody>
+      ${diagnosticos.map(d => `<tr>
+        <td>${d.CODIGO_CIE}</td>
+        <td>${d.DESCRIPCION}</td>
+        <td>${d.TIPO === 'P' ? 'Principal' : d.TIPO === 'S' ? 'Secundario' : 'Diferencial'}</td>
+        <td>${d.CAPITULO||'-'}</td>
+      </tr>`).join('')}</tbody></table>`;
+    }
+
+    if (recetas.length) {
+      html += `<h4 class="section-title">Recetas (${recetas.length} medicamentos)</h4>
+      <table class="table"><thead><tr><th>Medicamento</th><th>Concentración</th><th>Forma</th><th>Dosis</th><th>Frecuencia</th><th>Duración</th><th>Indicaciones</th></tr></thead><tbody>
+      ${recetas.map(r => `<tr>
+        <td>${r.NOMBRE_GENERICO}</td>
+        <td>${r.CONCENTRACION||'-'}</td>
+        <td>${r.FORMA_FARMA}</td>
+        <td>${r.DOSIS}</td>
+        <td>${r.FRECUENCIA}</td>
+        <td>${r.DURACION_DIAS||'-'} días</td>
+        <td>${r.INDICACIONES||'-'}</td>
+      </tr>`).join('')}</tbody></table>`;
+    }
+
+    document.getElementById('detContenido').innerHTML = html;
+    d.scrollIntoView({ behavior: 'smooth' });
+  } catch (e) {
+    alert('Error al cargar detalle: ' + e.message);
+  }
+}
+
+const params = new URLSearchParams(window.location.search);
+const pacienteParam = params.get('paciente');
+const citaParam = params.get('cita');
+if (pacienteParam) document.getElementById('filtroPaciente').value = pacienteParam;
+
+cargarConsultas();
+
+if (citaParam) {
+  fetchJSON(`${API}/citas/${citaParam}`).then(cita => {
+    document.getElementById('filtroPaciente').value = cita.ID_PACIENTE;
+    return cargarConsultas();
+  }).then(() => {
+    fetchJSON(`${API}/consultas?paciente=${document.getElementById('filtroPaciente').value}`)
+      .then(data => { if (data.length) verDetalle(data[0].ID_CONSULTA); });
+  }).catch(() => {});
+}
+</script>
+</body>
+</html>

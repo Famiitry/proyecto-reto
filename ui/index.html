@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestión Médica - Dashboard</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<header class="header">
+  <h1>Sistema de Gestión Médica</h1>
+  <nav class="nav">
+    <a href="/" class="active">Dashboard</a>
+    <a href="/pacientes">Pacientes</a>
+    <a href="/citas">Citas</a>
+    <a href="/consultas">Consultas</a>
+    <a href="/panel">Panel REST</a>
+    <a href="/api-docs" target="_blank">Swagger</a>
+  </nav>
+</header>
+
+<main class="main dashboard">
+  <div class="card-grid">
+    <div class="card stat-card">
+      <h3>Pacientes</h3>
+      <div class="stat-value" id="totalPacientes">--</div>
+      <p>Total registrados</p>
+      <a href="/pacientes" class="btn-link">Ver pacientes</a>
+    </div>
+    <div class="card stat-card">
+      <h3>Médicos</h3>
+      <div class="stat-value" id="totalMedicos">--</div>
+      <p>Activos</p>
+      <a href="/medicos" class="btn-link" style="display:none">Ver médicos</a>
+    </div>
+    <div class="card stat-card">
+      <h3>Citas</h3>
+      <div class="stat-value" id="totalCitas">--</div>
+      <p>Registradas</p>
+      <a href="/citas" class="btn-link">Ver citas</a>
+    </div>
+    <div class="card stat-card">
+      <h3>Consultas</h3>
+      <div class="stat-value" id="totalConsultas">--</div>
+      <p>Realizadas</p>
+      <a href="/consultas" class="btn-link">Ver consultas</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Flujo de demo</h3>
+    <div class="flow-steps">
+      <div class="flow-step">1. Buscar paciente → ver sus datos</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">2. Ver citas del paciente</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">3. Consultar historia clínica</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">4. Revisar diagnósticos y recetas</div>
+    </div>
+    <p style="margin-top:1rem; color:var(--text-secondary)">
+      Inicio sugerido: <strong>Paciente 16</strong> (Ana Lucía Pérez Mosquera)
+    </p>
+  </div>
+
+  <div class="card">
+    <h3>Últimas citas atendidas</h3>
+    <div id="ultimasCitas">Cargando...</div>
+  </div>
+</main>
+
+<script>
+const API = '/api';
+const KEY = 'demo-key-2026';
+const headers = { 'X-API-Key': KEY };
+
+async function fetchJSON(url) {
+  const r = await fetch(url, { headers });
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
+}
+
+(async () => {
+  try {
+    const [pacientes, medicos, citas, consultas] = await Promise.all([
+      fetchJSON(`${API}/pacientes`),
+      fetchJSON(`${API}/medicos`),
+      fetchJSON(`${API}/citas`),
+      fetchJSON(`${API}/consultas`)
+    ]);
+    document.getElementById('totalPacientes').textContent = pacientes.length;
+    document.getElementById('totalMedicos').textContent = medicos.length;
+    document.getElementById('totalCitas').textContent = citas.length;
+    document.getElementById('totalConsultas').textContent = consultas.length;
+  } catch (e) {
+    document.querySelectorAll('.stat-value').forEach(el => el.textContent = 'Error');
+  }
+
+  try {
+    const citas = await fetchJSON(`${API}/citas?estado=ATENDIDA`);
+    const ul = document.getElementById('ultimasCitas');
+    ul.innerHTML = '<table class="table"><thead><tr><th>Fecha</th><th>Paciente</th><th>Médico</th></tr></thead><tbody>' +
+      citas.slice(0, 10).map(c => `<tr>
+        <td>${c.FECHA_HORA?.substring(0,16)}</td>
+        <td>${c.PACIENTE_NOMBRE}</td>
+        <td>${c.MEDICO_NOMBRE}</td>
+      </tr>`).join('') + '</tbody></table>';
+  } catch (e) {
+    document.getElementById('ultimasCitas').textContent = 'Error al cargar';
+  }
+})();
+</script>
+</body>
+</html>

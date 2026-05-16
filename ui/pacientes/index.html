@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pacientes - Gestión Médica</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<header class="header">
+  <h1>Sistema de Gestión Médica</h1>
+  <nav class="nav">
+    <a href="/">Dashboard</a>
+    <a href="/pacientes" class="active">Pacientes</a>
+    <a href="/citas">Citas</a>
+    <a href="/consultas">Consultas</a>
+    <a href="/panel">Panel REST</a>
+    <a href="/api-docs" target="_blank">Swagger</a>
+  </nav>
+</header>
+
+<main class="main">
+  <div class="card">
+    <div class="toolbar">
+      <input type="text" id="busqueda" placeholder="Buscar por apellido..." oninput="cargarPacientes()">
+      <button class="btn" onclick="mostrarModalCrear()">+ Nuevo paciente</button>
+    </div>
+
+    <div id="pacientesList"></div>
+  </div>
+
+  <div id="detallePaciente" class="card" style="display:none">
+    <h3 id="detalleNombre"></h3>
+    <div id="detalleContenido"></div>
+    <div id="detalleCitas"></div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="modalCrear">
+  <div class="modal">
+    <h2>Nuevo paciente</h2>
+    <div class="detail-grid">
+      <div class="form-group"><label>Cédula *</label><input id="fCedula"></div>
+      <div class="form-group"><label>Email</label><input id="fEmail" type="email"></div>
+      <div class="form-group"><label>Nombres *</label><input id="fNombres"></div>
+      <div class="form-group"><label>Apellidos *</label><input id="fApellidos"></div>
+      <div class="form-group"><label>Fecha nacimiento *</label><input id="fFNac" type="date"></div>
+      <div class="form-group"><label>Sexo *</label><select id="fSexo"><option>M</option><option>F</option><option>X</option></select></div>
+      <div class="form-group"><label>Historia clínica *</label><input id="fHC"></div>
+      <div class="form-group"><label>Tipo sangre</label><select id="fTS"><option value="">--</option><option>A</option><option>B</option><option>AB</option><option>O</option></select></div>
+      <div class="form-group"><label>Factor RH</label><select id="fRH"><option value="">--</option><option>+</option><option>-</option></select></div>
+      <div class="form-group"><label>Ocupación</label><input id="fOcup"></div>
+      <div class="form-group"><label>Estado civil</label><select id="fEC"><option value="">--</option><option>SOLTERO</option><option>CASADO</option><option>DIVORCIADO</option><option>VIUDO</option><option>UNION</option></select></div>
+      <div class="form-group"><label>Contacto emergencia</label><input id="fCE"></div>
+      <div class="form-group"><label>Tel emergencia</label><input id="fCETel"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn" onclick="crearPaciente()">Guardar</button>
+      <button class="btn btn-danger" onclick="cerrarModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '/api';
+const KEY = 'demo-key-2026';
+const H = { 'X-API-Key': KEY, 'Content-Type': 'application/json' };
+
+async function fetchJSON(url, opts) {
+  const r = await fetch(url, { headers: H, ...opts });
+  if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.message || r.status); }
+  return r.json();
+}
+
+async function cargarPacientes() {
+  const q = document.getElementById('busqueda').value;
+  const url = q ? `${API}/pacientes?apellido=${encodeURIComponent(q)}` : `${API}/pacientes`;
+  document.getElementById('pacientesList').innerHTML = '<p class="loading">Cargando pacientes...</p>';
+  try {
+    const data = await fetchJSON(url);
+    renderTabla(data);
+  } catch (e) {
+    document.getElementById('pacientesList').innerHTML = `<p class="error-msg">Error: ${e.message}</p>`;
+  }
+}
+
+function renderTabla(data) {
+  if (!data.length) {
+    document.getElementById('pacientesList').innerHTML = '<p class="empty-state">No se encontraron pacientes.</p>';
+    return;
+  }
+  const html = `<table class="table"><thead><tr>
+    <th>ID</th><th>HC</th><th>Cédula</th><th>Apellidos</th><th>Nombres</th>
+    <th>Sexo</th><th>Sangre</th><th>Estado Civil</th><th>Acciones</th>
+  </tr></thead><tbody>${data.map(p => `<tr>
+    <td>${p.ID_PACIENTE}</td>
+    <td><a href="#" onclick="verDetalle(${p.ID_PACIENTE})">${p.HISTORIA_CLINICA}</a></td>
+    <td>${p.CEDULA}</td>
+    <td>${p.APELLIDOS}</td>
+    <td>${p.NOMBRES}</td>
+    <td>${p.SEXO}</td>
+    <td>${p.TIPO_SANGRE||'-'}${p.FACTOR_RH||''}</td>
+    <td>${p.ESTADO_CIVIL||'-'}</td>
+    <td>
+      <a href="#" onclick="verDetalle(${p.ID_PACIENTE})">Ver</a>
+      <a href="#" onclick="eliminarPaciente(${p.ID_PACIENTE})" style="color:var(--danger);margin-left:0.5rem">Eliminar</a>
+    </td>
+  </tr>`).join('')}</tbody></table>`;
+  document.getElementById('pacientesList').innerHTML = html;
+}
+
+async function verDetalle(id) {
+  try {
+    const [pac, citas] = await Promise.all([
+      fetchJSON(`${API}/pacientes/${id}`),
+      fetchJSON(`${API}/citas?paciente=${id}`)
+    ]);
+    const d = document.getElementById('detallePaciente');
+    d.style.display = 'block';
+    document.getElementById('detalleNombre').textContent = `${pac.NOMBRES} ${pac.APELLIDOS}`;
+    document.getElementById('detalleContenido').innerHTML = `<dl class="detail-grid">
+      <dt>Historia clínica</dt><dd>${pac.HISTORIA_CLINICA}</dd>
+      <dt>Cédula</dt><dd>${pac.CEDULA}</dd>
+      <dt>Fecha nacimiento</dt><dd>${pac.FECHA_NACIMIENTO}</dd>
+      <dt>Sexo</dt><dd>${pac.SEXO}</dd>
+      <dt>Email</dt><dd>${pac.EMAIL||'-'}</dd>
+      <dt>Tipo sangre</dt><dd>${pac.TIPO_SANGRE||'-'} ${pac.FACTOR_RH||''}</dd>
+      <dt>Ocupación</dt><dd>${pac.OCUPACION||'-'}</dd>
+      <dt>Estado civil</dt><dd>${pac.ESTADO_CIVIL||'-'}</dd>
+      <dt>Contacto emergencia</dt><dd>${pac.CONTACTO_EMERGENCIA_NOMBRE||'-'} / ${pac.CONTACTO_EMERGENCIA_TELEFONO||'-'}</dd>
+    </dl>`;
+
+    const citasHtml = citas.length ? `<h4 class="section-title">Citas (${citas.length})</h4>
+      <table class="table"><thead><tr><th>ID</th><th>Fecha</th><th>Médico</th><th>Consultorio</th><th>Estado</th><th>Detalle</th></tr></thead><tbody>
+      ${citas.map(c => `<tr>
+        <td>${c.ID_CITA}</td>
+        <td>${c.FECHA_HORA?.substring(0,16)}</td>
+        <td>${c.MEDICO_NOMBRE}</td>
+        <td>${c.CONSULTORIO_COD}</td>
+        <td><span class="badge badge-${c.ESTADO_CODIGO?.toLowerCase()}">${c.ESTADO_DESC||c.ESTADO_CODIGO}</span></td>
+        <td><a href="/consultas?cita=${c.ID_CITA}">Ver consulta</a></td>
+      </tr>`).join('')}
+    </tbody></table>` : '';
+
+    document.getElementById('detalleCitas').innerHTML = citasHtml;
+    document.getElementById('detallePaciente').scrollIntoView({ behavior: 'smooth' });
+  } catch (e) {
+    alert('Error al cargar detalle: ' + e.message);
+  }
+}
+
+async function eliminarPaciente(id) {
+  if (!confirm('¿Eliminar paciente ' + id + '?')) return;
+  try {
+    await fetch(`${API}/pacientes/${id}`, { method: 'DELETE', headers: H });
+    cargarPacientes();
+  } catch (e) {
+    alert('Error: ' + e.message);
+  }
+}
+
+function mostrarModalCrear() { document.getElementById('modalCrear').classList.add('active'); }
+function cerrarModal() { document.getElementById('modalCrear').classList.remove('active'); }
+
+async function crearPaciente() {
+  const body = {
+    cedula: document.getElementById('fCedula').value,
+    nombres: document.getElementById('fNombres').value,
+    apellidos: document.getElementById('fApellidos').value,
+    fecha_nacimiento: document.getElementById('fFNac').value,
+    sexo: document.getElementById('fSexo').value,
+    email: document.getElementById('fEmail').value,
+    historia_clinica: document.getElementById('fHC').value,
+    tipo_sangre: document.getElementById('fTS').value || null,
+    factor_rh: document.getElementById('fRH').value || null,
+    ocupacion: document.getElementById('fOcup').value || null,
+    estado_civil: document.getElementById('fEC').value || null,
+    contacto_emergencia_nombre: document.getElementById('fCE').value || null,
+    contacto_emergencia_telefono: document.getElementById('fCETel').value || null,
+  };
+  try {
+    const r = await fetchJSON(`${API}/pacientes`, { method: 'POST', body: JSON.stringify(body) });
+    alert('Paciente creado. ID: ' + r.id_paciente);
+    cerrarModal();
+    cargarPacientes();
+  } catch (e) {
+    alert('Error al crear: ' + e.message);
+  }
+}
+
+cargarPacientes();
+</script>
+</body>
+</html>

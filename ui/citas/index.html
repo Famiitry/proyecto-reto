@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Citas - Gestión Médica</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<header class="header">
+  <h1>Sistema de Gestión Médica</h1>
+  <nav class="nav">
+    <a href="/">Dashboard</a>
+    <a href="/pacientes">Pacientes</a>
+    <a href="/citas" class="active">Citas</a>
+    <a href="/consultas">Consultas</a>
+    <a href="/panel">Panel REST</a>
+    <a href="/api-docs" target="_blank">Swagger</a>
+  </nav>
+</header>
+
+<main class="main">
+  <div class="card">
+    <div class="toolbar">
+      <select id="filtroEstado" onchange="cargarCitas()">
+        <option value="">Todos los estados</option>
+        <option value="ATENDIDA">Atendida</option>
+        <option value="PROGRAMADA">Programada</option>
+        <option value="CONFIRMADA">Confirmada</option>
+        <option value="CANCELADA">Cancelada</option>
+        <option value="NO_ASISTIO">No asistió</option>
+      </select>
+      <input type="number" id="filtroPaciente" placeholder="ID Paciente" onchange="cargarCitas()" style="width:120px">
+      <input type="number" id="filtroMedico" placeholder="ID Médico" onchange="cargarCitas()" style="width:120px">
+      <button class="btn btn-sm" onclick="cargarCitas()">Filtrar</button>
+      <button class="btn btn-sm btn-danger" onclick="limpiarFiltros()">Limpiar</button>
+    </div>
+
+    <div id="citasList"></div>
+  </div>
+</main>
+
+<script>
+const API = '/api';
+const H = { 'X-API-Key': 'demo-key-2026' };
+
+async function fetchJSON(url) {
+  const r = await fetch(url, { headers: H });
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
+}
+
+async function cargarCitas() {
+  const params = new URLSearchParams();
+  const estado = document.getElementById('filtroEstado').value;
+  const paciente = document.getElementById('filtroPaciente').value;
+  const medico = document.getElementById('filtroMedico').value;
+  if (estado) params.set('estado', estado);
+  if (paciente) params.set('paciente', paciente);
+  if (medico) params.set('medico', medico);
+
+  document.getElementById('citasList').innerHTML = '<p class="loading">Cargando citas...</p>';
+  try {
+    const data = await fetchJSON(`${API}/citas?${params}`);
+    renderTabla(data);
+  } catch (e) {
+    document.getElementById('citasList').innerHTML = `<p class="error-msg">Error: ${e.message}</p>`;
+  }
+}
+
+function renderTabla(data) {
+  if (!data.length) {
+    document.getElementById('citasList').innerHTML = '<p class="empty-state">No se encontraron citas.</p>';
+    return;
+  }
+  const html = `<table class="table"><thead><tr>
+    <th>ID</th><th>Fecha/Hora</th><th>Paciente</th><th>Médico</th>
+    <th>Consultorio</th><th>Estado</th><th>Motivo</th><th>Consulta</th>
+  </tr></thead><tbody>${data.map(c => `<tr>
+    <td>${c.ID_CITA}</td>
+    <td>${c.FECHA_HORA?.substring(0,16)}</td>
+    <td><a href="/pacientes">${c.PACIENTE_NOMBRE}</a></td>
+    <td>${c.MEDICO_NOMBRE}</td>
+    <td>${c.CONSULTORIO_COD}</td>
+    <td><span class="badge badge-${c.ESTADO_CODIGO?.toLowerCase()}">${c.ESTADO_DESC||c.ESTADO_CODIGO}</span></td>
+    <td>${c.MOTIVO_SOLICITUD||'-'}</td>
+    <td>
+      ${c.ESTADO_CODIGO === 'ATENDIDA'
+        ? `<a href="/consultas?cita=${c.ID_CITA}">Ver</a>`
+        : '-'}
+    </td>
+  </tr>`).join('')}</tbody></table>`;
+  document.getElementById('citasList').innerHTML = html;
+}
+
+function limpiarFiltros() {
+  document.getElementById('filtroEstado').value = '';
+  document.getElementById('filtroPaciente').value = '';
+  document.getElementById('filtroMedico').value = '';
+  cargarCitas();
+}
+
+cargarCitas();
+</script>
+</body>
+</html>
