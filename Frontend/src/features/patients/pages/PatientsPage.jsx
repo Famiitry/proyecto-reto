@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, X } from 'lucide-react';
 import DataTable from '../../../components/ui/DataTable.jsx';
 import PageHeader from '../../../components/ui/PageHeader.jsx';
 import Panel from '../../../components/ui/Panel.jsx';
@@ -27,6 +27,7 @@ function PatientsPage() {
   const [patientListStatus, setPatientListStatus] = useState('loading');
   const [patientPage, setPatientPage] = useState(1);
   const [patientHasMore, setPatientHasMore] = useState(false);
+  const [isPatientModalOpen, setIsPatientModalOpen] = useState(false);
   const gapsPerPage = 5;
   const patientsPerPage = 6;
 
@@ -186,7 +187,7 @@ function PatientsPage() {
         title="Directorio de Pacientes"
         subtitle="Gestion centralizada de expedientes y analisis clinico."
         actions={
-          <button className="primary-button">
+          <button className="primary-button" type="button" onClick={() => setIsPatientModalOpen(true)}>
             <UserPlus size={16} />
             Nuevo paciente
           </button>
@@ -294,7 +295,9 @@ function PatientsPage() {
           )}
         </Panel>
         <Panel className="span-4" title="Registro rapido">
-          <PatientQuickForm />
+          <p className="panel-message">
+            Abre el formulario completo desde <strong>Nuevo paciente</strong> para registrar un expediente.
+          </p>
         </Panel>
         <Panel className="span-12" title="Pacientes con mayor tiempo de espera">
           {waitTimeStatus === 'loading' && <p className="panel-message">Cargando tiempos de espera...</p>}
@@ -309,6 +312,28 @@ function PatientsPage() {
           )}
         </Panel>
       </section>
+
+      {isPatientModalOpen && (
+        <div className="modal-backdrop visible" onClick={() => setIsPatientModalOpen(false)}>
+          <div className="modal patient-modal" onClick={(event) => event.stopPropagation()}>
+            <header>
+              <div>
+                <h2>Nuevo paciente</h2>
+                <p className="muted-light">Completa los datos del POST para crear el expediente.</p>
+              </div>
+              <button type="button" onClick={() => setIsPatientModalOpen(false)}>
+                <X size={18} />
+              </button>
+            </header>
+            <div className="patient-modal-body">
+              <PatientQuickForm
+                onCancel={() => setIsPatientModalOpen(false)}
+                onSuccess={() => setIsPatientModalOpen(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

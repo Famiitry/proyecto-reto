@@ -34,7 +34,6 @@ http://localhost:8080/ords/medica/api/pacientes/create
     "referencia": "Edificio Blanco"
 }
 ```
-
 ---
 
 ## 2. Citas

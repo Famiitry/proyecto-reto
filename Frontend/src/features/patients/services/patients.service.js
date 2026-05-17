@@ -1,5 +1,21 @@
 const MEDICAL_API_BASE_URL = '/api';
 
+export async function createPatient(payload) {
+  const response = await fetch(`${MEDICAL_API_BASE_URL}/pacientes/create`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error('No se pudo registrar el paciente.');
+  }
+
+  return response.json().catch(() => ({}));
+}
+
 export async function fetchPatientAppointmentGaps() {
   const response = await fetch(`${MEDICAL_API_BASE_URL}/pacientes/brachas-citas-paciente?limit=100`);
 
