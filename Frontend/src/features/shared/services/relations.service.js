@@ -40,7 +40,7 @@ export async function fetchAppointmentStatuses() {
 }
 
 export async function fetchAppointmentsWithoutConsultation() {
-  const response = await fetch(`${MEDICAL_API_BASE_URL}/relaciones/citas-sin-consulta?limit=200`);
+  const response = await fetch(`${MEDICAL_API_BASE_URL}/relaciones/citas-sin-consulta`);
   if (!response.ok) throw new Error('No se pudieron cargar las citas disponibles.');
   const payload = await response.json();
   return payload.items ?? [];

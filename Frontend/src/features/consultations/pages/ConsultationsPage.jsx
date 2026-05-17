@@ -163,14 +163,39 @@ function ConsultationsPage() {
   async function handleSubmit(event) {
     event.preventDefault();
 
+    const sis = form.presion_sistolica ? Number(form.presion_sistolica) : null;
+    const dia = form.presion_diastolica ? Number(form.presion_diastolica) : null;
+
+    if (sis !== null && dia !== null && sis <= dia) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Presión arterial inválida',
+        text: `La presión sistólica (${sis}) debe ser mayor que la diastólica (${dia}).`,
+        confirmButtonText: 'Corregir',
+      });
+      setActiveTab(1);
+      return;
+    }
+
+    if ((sis !== null && dia === null) || (sis === null && dia !== null)) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Presión arterial incompleta',
+        text: 'Debes ingresar ambos valores de presión (sistólica y diastólica) o dejar los dos vacíos.',
+        confirmButtonText: 'Corregir',
+      });
+      setActiveTab(1);
+      return;
+    }
+
     const payload = {
       id_cita:             Number(form.id_cita),
       motivo_consulta:     form.motivo_consulta,
       enfermedad_actual:   form.enfermedad_actual || null,
       examen_fisico:       form.examen_fisico || null,
       plan_tratamiento:    form.plan_tratamiento || null,
-      presion_sistolica:   form.presion_sistolica   ? Number(form.presion_sistolica)   : null,
-      presion_diastolica:  form.presion_diastolica  ? Number(form.presion_diastolica)  : null,
+      presion_sistolica:   sis,
+      presion_diastolica:  dia,
       frec_cardiaca:       form.frec_cardiaca        ? Number(form.frec_cardiaca)        : null,
       frec_respiratoria:   form.frec_respiratoria   ? Number(form.frec_respiratoria)   : null,
       temperatura:         form.temperatura          ? Number(form.temperatura)          : null,

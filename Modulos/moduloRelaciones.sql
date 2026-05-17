@@ -199,7 +199,7 @@ ORDER BY id_estado');
       p_pattern        => 'citas-sin-consulta',
       p_method         => 'GET',
       p_source_type    => 'json/collection',
-      p_items_per_page => 25,
+      p_items_per_page => 1000,
       p_mimes_allowed  => NULL,
       p_comments       => NULL,
       p_source         =>
@@ -217,9 +217,7 @@ JOIN estado_cita ec    ON ec.id_estado       = ci.id_estado
 WHERE NOT EXISTS (
     SELECT 1 FROM consulta con WHERE con.id_cita = ci.id_cita
 )
-  AND (:paciente IS NULL OR UPPER(per_pac.nombres || '' '' || per_pac.apellidos) LIKE ''%'' || UPPER(:paciente) || ''%'')
-ORDER BY ci.fecha_hora
-OFFSET NVL(:offset, 0) ROWS FETCH NEXT NVL(:limit, 25) ROWS ONLY');
+ORDER BY ci.fecha_hora');
 
   -- -----------------------------------------------------------------------
   -- GET /api/relaciones/cie10
