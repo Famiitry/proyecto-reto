@@ -32,3 +32,14 @@ export async function fetchConsultationSummaries() {
   const payload = await response.json();
   return payload.items ?? [];
 }
+
+export async function createConsultation(payload) {
+  const response = await fetch(`${MEDICAL_API_BASE_URL}/consultas/create`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) throw new Error('No se pudo registrar la consulta.');
+  return response.json().catch(() => ({}));
+}

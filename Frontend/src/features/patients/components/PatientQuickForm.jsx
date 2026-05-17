@@ -1,10 +1,23 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import Field from '../../../components/ui/Field.jsx';
+import { fetchParroquiaOptions } from '../../shared/services/relations.service.js';
 import { createPatient } from '../services/patients.service.js';
 
 function PatientQuickForm({ onSuccess, onCancel }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [parroquias, setParroquias] = useState([]);
+  const [parroquiaSearch, setParroquiaSearch] = useState('');
+
+  useEffect(() => {
+    fetchParroquiaOptions().then(setParroquias).catch(() => {});
+  }, []);
+
+  const filteredParroquias = parroquiaSearch.trim()
+    ? parroquias.filter((p) =>
+        `${p.parroquia} ${p.canton} ${p.provincia}`.toLowerCase().includes(parroquiaSearch.toLowerCase())
+      )
+    : parroquias;
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -118,7 +131,26 @@ function PatientQuickForm({ onSuccess, onCancel }) {
             <option value="TRABAJO">TRABAJO</option>
           </select>
         </label>
-        <Field label="ID parroquia" name="id_parroquia" type="number" required placeholder="1" />
+        <label style={{ gridColumn: '1 / -1' }}>
+          <span>Buscar parroquia</span>
+          <input
+            type="text"
+            value={parroquiaSearch}
+            onChange={(e) => setParroquiaSearch(e.target.value)}
+            placeholder="Escribe parroquia, cantón o provincia..."
+          />
+        </label>
+        <label style={{ gridColumn: '1 / -1' }}>
+          <span>Parroquia *</span>
+          <select name="id_parroquia" required defaultValue="">
+            <option value="" disabled>Selecciona una parroquia</option>
+            {filteredParroquias.map((p) => (
+              <option key={p.id_parroquia} value={p.id_parroquia}>
+                {p.parroquia} — {p.canton}, {p.provincia}
+              </option>
+            ))}
+          </select>
+        </label>
         <Field label="Calle principal" name="calle_principal" required placeholder="Av. Principal" />
         <Field label="Calle secundaria" name="calle_secundaria" placeholder="Calle Secundaria" />
         <Field label="Numeración" name="numeracion" placeholder="123" />
