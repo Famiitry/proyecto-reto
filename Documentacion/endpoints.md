@@ -12,10 +12,10 @@ http://localhost:8080/ords/medica/api/medicos/citas-especialidad
 JSON resultante
 {"items":[{"especialidad":"Cardiología","mes":"2025-06","total":1},{"especialidad":"Cardiología","mes":"2025-08","total":1},{"especialidad":"Cardiología","mes":"2025-09","total":1},{"especialidad":"Cardiología","mes":"2025-11","total":1},{"especialidad":"Cardiología","mes":"2026-01","total":1},{"especialidad":"Cardiología","mes":"2026-03","total":1},{"especialidad":"Cardiología","mes":"2026-04","total":1},{"especialidad":"Cardiología","mes":null,"total":7},{"especialidad":"Dermatología","mes":"2025-07","total":1},{"especialidad":"Dermatología","mes":"2025-08","total":1},{"especialidad":"Dermatología","mes":"2025-10","total":1},{"especialidad":"Dermatología","mes":"2025-12","total":1},{"especialidad":"Dermatología","mes":"2026-01","total":1},{"especialidad":"Dermatología","mes":"2026-03","total":1},{"especialidad":"Dermatología","mes":null,"total":6},{"especialidad":"Endocrinología","mes":"2025-05","total":1},{"especialidad":"Endocrinología","mes":"2025-07","total":1},{"especialidad":"Endocrinología","mes":"2025-09","total":1},{"especialidad":"Endocrinología","mes":"2025-10","total":1},{"especialidad":"Endocrinología","mes":"2025-12","total":1},{"especialidad":"Endocrinología","mes":"2026-02","total":1},{"especialidad":"Endocrinología","mes":"2026-04","total":1},{"especialidad":"Endocrinología","mes":null,"total":7},{"especialidad":"Ginecología","mes":"2025-06","total":1},{"especialidad":"Ginecología","mes":"2025-08","total":1}],"hasMore":true,"limit":25,"offset":0,"count":25,"links":[{"rel":"self","href":"http://localhost:8080/ords/medica/api/medicos/citas-especialidad"},{"rel":"describedby","href":"http://localhost:8080/ords/medica/metadata-catalog/api/medicos/item"},{"rel":"first","href":"http://localhost:8080/ords/medica/api/medicos/citas-especialidad"},{"rel":"next","href":"http://localhost:8080/ords/medica/api/medicos/citas-especialidad?offset=25"}]}
 
-1.3 Diagnosticos mas frecuentes por medico (DENSE_RANK)
+1.3 Diagnosticos mas frecuentes por medico (DENSE_RANK) //NO IMPLEMENTADO EN EL FRONT
 http://localhost:8080/ords/medica/api/medicos/diagnosticos-rank
 JSON resultante
-No devuelve data esperar a un nuevo seed
+{"items":[{"id_medico":221,"codigo_cie":"R51","total":1,"rnk":1},{"id_medico":227,"codigo_cie":"I10","total":1,"rnk":1}],"hasMore":false,"limit":25,"offset":0,"count":2,"links":[{"rel":"self","href":"http://localhost:8080/ords/medica/api/medicos/diagnosticos-rank"},{"rel":"describedby","href":"http://localhost:8080/ords/medica/metadata-catalog/api/medicos/item"},{"rel":"first","href":"http://localhost:8080/ords/medica/api/medicos/diagnosticos-rank"}]}
 
 1.4 Resumen por especialidad y estado (CUBE)
 http://localhost:8080/ords/medica/api/medicos/especialidad-estado
@@ -54,10 +54,6 @@ JSON
 http://localhost:8080/ords/medica/api/pacientes/brachas-citas-paciente
 {"items":[{"id_paciente":238,"paciente":"Sangurima Loja, Mariana","max_gap_dias":245.125},{"id_paciente":247,"paciente":"Llivisaca Pulla, Bryan Steven","max_gap_dias":245.125},{"id_paciente":246,"paciente":"Cárdenas Rojas, Elena María","max_gap_dias":245.125},{"id_paciente":245,"paciente":"Vivar Toledo, César Augusto","max_gap_dias":245.125},{"id_paciente":244,"paciente":"Galarza Fernández, Paola Andrea","max_gap_dias":245.125},{"id_paciente":243,"paciente":"Inga Macancela, Andrés Felipe","max_gap_dias":245.125},{"id_paciente":239,"paciente":"Tenorio Cabrera, Iván Andrés","max_gap_dias":245.125},{"id_paciente":240,"paciente":"Mejía Ulloa, Karla Stefanía","max_gap_dias":244.791666666666666666666666666666666667},{"id_paciente":250,"paciente":"Reinoso Calle, Tatiana Belén","max_gap_dias":244.791666666666666666666666666666666667},{"id_paciente":249,"paciente":"Espinoza Pesántez, Mauricio Daniel","max_gap_dias":244.791666666666666666666666666666666667},{"id_paciente":248,"paciente":"Cevallos Andrade, Doménica Camila","max_gap_dias":244.791666666666666666666666666666666667},{"id_paciente":242,"paciente":"Yunga Pacheco, Lucía Esperanza","max_gap_dias":244.791666666666666666666666666666666667},{"id_paciente":241,"paciente":"Bravo Sarmiento, Fernando Javier","max_gap_dias":244.791666666666666666666666666666666667},{"id_paciente":237,"paciente":"Quezada Tapia, Jorge Luis","max_gap_dias":102.854166666666666666666666666666666667}],"hasMore":false,"limit":25,"offset":0,"count":14,"links":[{"rel":"self","href":"http://localhost:8080/ords/medica/api/pacientes/brachas-citas-paciente"},{"rel":"describedby","href":"http://localhost:8080/ords/medica/metadata-catalog/api/pacientes/item"},{"rel":"first","href":"http://localhost:8080/ords/medica/api/pacientes/brachas-citas-paciente"}]}
 
-3.3 Ultima consulta por paciente
-http://localhost:8080/ords/medica/api/pacientes/ultima-consulta-paciente
-Ver imagen enviada
-No devuelve data de momento no cololar
 
 3.4 Pacientes con uso alto vs promedio (z-score)
 http://localhost:8080/ords/medica/api/pacientes/paciente-promedio-satisfaccion
@@ -77,11 +73,11 @@ GRUPO 4: CONSULTAS CLINICAS
 
 4.1 Consultas con resumen JSON de anamnesis
 http://localhost:8080/ords/medica/api/consultas/resumen
-Sin datos de momento ignorar 
+{"items":[{"id_consulta":1,"fecha_atencion":"2026-05-16T19:55:42.97225Z","motivo_principal":"Cefalea"},{"id_consulta":3,"fecha_atencion":"2026-05-17T01:19:09.278601Z","motivo_principal":"asd"}],"hasMore":false,"limit":25,"offset":0,"count":2,"links":[{"rel":"self","href":"http://localhost:8080/ords/medica/api/consultas/resumen"},{"rel":"describedby","href":"http://localhost:8080/ords/medica/metadata-catalog/api/consultas/item"},{"rel":"first","href":"http://localhost:8080/ords/medica/api/consultas/resumen"}]}
 
 4.2 Medicamentos mas recetados por mes
 http://localhost:8080/ords/medica/api/recetas/medicamentos-mas-recetados
-Sin datos de momento ignorar 
+{"items":[{"mes":"2026-05","medicamento":"Paracetamol","total":1,"rn":1}],"hasMore":false,"limit":25,"offset":0,"count":1,"links":[{"rel":"self","href":"http://localhost:8080/ords/medica/api/recetas/medicamentos-mas-recetados"},{"rel":"describedby","href":"http://localhost:8080/ords/medica/metadata-catalog/api/recetas/item"},{"rel":"first","href":"http://localhost:8080/ords/medica/api/recetas/medicamentos-mas-recetados"}]}
 
 4.3 Ultima consulta 
 http://localhost:8080/ords/medica/api/consultas/recientes
