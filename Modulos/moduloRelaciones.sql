@@ -18,11 +18,6 @@ BEGIN
       p_status         => 'PUBLISHED',
       p_comments       => 'Endpoints de referencia para obtener IDs de catálogos');
 
-  -- -----------------------------------------------------------------------
-  -- GET /api/relaciones/parroquias
-  -- Jerarquía completa País → Provincia → Cantón → Parroquia
-  -- Uso: obtener id_parroquia para POST /pacientes
-  -- -----------------------------------------------------------------------
   ORDS.DEFINE_TEMPLATE(
       p_module_name    => 'sistema.medico.api.relaciones',
       p_pattern        => 'parroquias',
@@ -55,11 +50,6 @@ WHERE (:provincia IS NULL OR UPPER(pro.nombre) LIKE ''%'' || UPPER(:provincia) |
 ORDER BY pro.nombre, can.nombre, par.nombre
 OFFSET NVL(:offset, 0) ROWS FETCH NEXT NVL(:limit, 25) ROWS ONLY');
 
-  -- -----------------------------------------------------------------------
-  -- GET /api/relaciones/pacientes
-  -- Lista de pacientes con cédula e historia clínica
-  -- Uso: obtener id_paciente para POST /citas
-  -- -----------------------------------------------------------------------
   ORDS.DEFINE_TEMPLATE(
       p_module_name    => 'sistema.medico.api.relaciones',
       p_pattern        => 'pacientes',
@@ -88,11 +78,6 @@ WHERE (:nombre  IS NULL OR UPPER(per.nombres || '' '' || per.apellidos) LIKE ''%
 ORDER BY per.apellidos, per.nombres
 OFFSET NVL(:offset, 0) ROWS FETCH NEXT NVL(:limit, 25) ROWS ONLY');
 
-  -- -----------------------------------------------------------------------
-  -- GET /api/relaciones/medicos
-  -- Lista de médicos activos con especialidades
-  -- Uso: obtener id_medico para POST /citas
-  -- -----------------------------------------------------------------------
   ORDS.DEFINE_TEMPLATE(
       p_module_name    => 'sistema.medico.api.relaciones',
       p_pattern        => 'medicos',
@@ -125,11 +110,6 @@ GROUP BY med.id_medico, per.nombres, per.apellidos, med.num_registro, med.titulo
 ORDER BY per.apellidos, per.nombres
 OFFSET NVL(:offset, 0) ROWS FETCH NEXT NVL(:limit, 25) ROWS ONLY');
 
-  -- -----------------------------------------------------------------------
-  -- GET /api/relaciones/consultorios
-  -- Lista de consultorios disponibles
-  -- Uso: obtener id_consultorio para POST /citas
-  -- -----------------------------------------------------------------------
   ORDS.DEFINE_TEMPLATE(
       p_module_name    => 'sistema.medico.api.relaciones',
       p_pattern        => 'consultorios',
@@ -154,11 +134,6 @@ OFFSET NVL(:offset, 0) ROWS FETCH NEXT NVL(:limit, 25) ROWS ONLY');
 FROM consultorio
 ORDER BY piso, codigo');
 
-  -- -----------------------------------------------------------------------
-  -- GET /api/relaciones/estados-cita
-  -- Catálogo de estados de cita
-  -- Uso: obtener codigo_estado para POST/PUT /citas
-  -- -----------------------------------------------------------------------
   ORDS.DEFINE_TEMPLATE(
       p_module_name    => 'sistema.medico.api.relaciones',
       p_pattern        => 'estados-cita',
@@ -181,11 +156,6 @@ ORDER BY piso, codigo');
 FROM estado_cita
 ORDER BY id_estado');
 
-  -- -----------------------------------------------------------------------
-  -- GET /api/relaciones/citas-sin-consulta
-  -- Citas que aún no tienen consulta registrada
-  -- Uso: obtener id_cita para POST /consultas
-  -- -----------------------------------------------------------------------
   ORDS.DEFINE_TEMPLATE(
       p_module_name    => 'sistema.medico.api.relaciones',
       p_pattern        => 'citas-sin-consulta',
@@ -219,11 +189,6 @@ WHERE NOT EXISTS (
 )
 ORDER BY ci.fecha_hora');
 
-  -- -----------------------------------------------------------------------
-  -- GET /api/relaciones/cie10
-  -- Búsqueda en catálogo CIE-10
-  -- Uso: obtener codigo_cie_principal para POST /consultas
-  -- -----------------------------------------------------------------------
   ORDS.DEFINE_TEMPLATE(
       p_module_name    => 'sistema.medico.api.relaciones',
       p_pattern        => 'cie10',
